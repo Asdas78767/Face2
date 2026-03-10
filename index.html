@@ -10,30 +10,486 @@
 body{background:#080b14;color:#c8dce8;font-family:'Noto Sans KR',sans-serif;overflow-x:hidden}
 
 .hdr{background:#0c1020;border-bottom:1px solid #1a2844;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
-.hdr .tit{font-size:13px;font-weight:900;color:#00d4ff;letter-spacing:1px}
-.hdr .tit small{font-size:10px;color:#2a6888;font-weight:400;margin-left:4px}
-.hdr .inf{font-size:10px;color:#2a6888;font-family:monospace;text-align:right}
+.hdr .tit{font-size:13px;font-weight:900;color:#00d4ff}
+.hdr .inf{font-size:10px;color:#2a6888;font-family:monospace}
 
-#log{padding:10px;font-size:11px;line-height:1.7;background:#060910;font-family:monospace}
-#log .o{color:#44ff88}#log .e{color:#ff4466}#log .w{color:#ffcc44}
+#log{padding:12px;font-size:12px;line-height:1.8;background:#060910;font-family:monospace;min-height:80px}
+.o{color:#44ff88}.e{color:#ff4466}.w{color:#ffcc44}
 #log div{color:#00aad4}
 
-#startBtn{display:none;width:85%;max-width:320px;margin:36px auto;padding:15px;font-size:15px;font-weight:700;color:#00d4ff;background:rgba(0,180,255,.06);border:2px solid #00a0d0;border-radius:8px;font-family:inherit;cursor:pointer;text-align:center}
+#startBtn{display:none;width:85%;max-width:320px;margin:30px auto;padding:15px;font-size:15px;font-weight:700;color:#00d4ff;background:rgba(0,180,255,.06);border:2px solid #00a0d0;border-radius:8px;font-family:inherit;cursor:pointer;text-align:center}
 
-/* 카메라 */
 #camBox{position:relative;width:100%;max-width:540px;margin:0 auto;background:#000;line-height:0;display:none}
 #camBox video{display:block;width:100%;transform:scaleX(-1)}
 #camBox canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
 
-/* 얼굴 탭 */
-.ftabs{display:flex;justify-content:center;gap:6px;padding:8px;flex-wrap:wrap;display:none}
-.ftab{padding:3px 12px;font-size:11px;font-weight:700;border:1px solid #1a3050;border-radius:16px;cursor:pointer;color:#4a7a90;transition:all .15s}
-.ftab.on{color:#00d4ff;border-color:#00a0d0;background:rgba(0,180,255,.1)}
-
 /* 주 감정 */
-#mainBox{display:none;text-align:center;padding:12px}
-.m-emo{font-size:18px;font-weight:900;letter-spacing:1px}
-.m-pct{font-size:34px;font-weight:900;margin:2px 0}
+#mainBox{display:none;text-align:center;padding:14px 12px 8px;background:linear-gradient(180deg,rgba(0,180,255,.03),transparent)}
+.m-emo{font-size:22px;font-weight:900;letter-spacing:1px}
+.m-pct{font-size:38px;font-weight:900;margin:2px 0}
+.m-sub{font-size:12px;color:#4a7a90;margin-bottom:6px}
+
+/* 기본 7감정 전체 표시 (교과서 스타일) */
+#basePanel{display:none;padding:10px 14px}
+.bp-title{font-size:11px;color:#00a0c0;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+.bp-row{display:flex;align-items:center;height:28px;border-bottom:1px solid #0a1018}
+.bp-row .bp-emoji{width:24px;font-size:14px;text-align:center;flex-shrink:0}
+.bp-row .bp-name{width:50px;font-size:12px;font-weight:700;flex-shrink:0;color:#5a7a8a}
+.bp-row .bp-bar{flex:1;height:8px;background:#0c1622;border-radius:4px;overflow:hidden;margin:0 8px}
+.bp-row .bp-fill{height:100%;border-radius:4px;transition:width .3s ease}
+.bp-row .bp-val{width:58px;font-size:11px;font-family:monospace;text-align:right;flex-shrink:0;color:#5a7a8a}
+.bp-row.top{background:rgba(0,180,255,.04)}
+.bp-row.top .bp-name{color:#fff;font-weight:900}
+.bp-row.top .bp-val{color:#fff;font-weight:900}
+
+/* 파생 감정 */
+#derivedPanel{display:none;padding:8px 14px;border-top:1px solid #0d1828}
+.dp-title{font-size:11px;color:#00a0c0;letter-spacing:1px;font-weight:700;margin-bottom:4px}
+.dp-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px}
+.dp-cat{grid-column:span 2;font-size:10px;color:#1a7a90;padding:5px 0 2px;margin-top:3px;border-top:1px solid #0a1018;font-weight:700}
+.dp-row{display:flex;align-items:center;gap:3px;height:19px}
+.dp-row .dp-nm{font-size:10px;width:50px;flex-shrink:0;font-weight:700}
+.dp-row .dp-bg{flex:1;height:4px;background:#0a1420;border-radius:2px;overflow:hidden}
+.dp-row .dp-fl{height:100%;border-radius:2px;transition:width .25s}
+.dp-row .dp-vl{font-size:9px;width:32px;text-align:right;font-family:monospace}
+
+/* 바 차트 */
+#barBox{display:none;padding:10px 14px;border-top:1px solid #0d1828}
+.bar-t{font-size:11px;color:#2a6888;font-weight:700;margin-bottom:5px}
+#barC{width:100%;height:120px;background:#060910;border:1px solid #0d1828;border-radius:4px;display:block}
+
+/* 히스토리 */
+#histBox{display:none;padding:10px 14px;border-top:1px solid #0d1828}
+.hist-t{font-size:11px;color:#2a6888;font-weight:700;margin-bottom:5px}
+#histC{width:100%;height:80px;background:#060910;border:1px solid #0d1828;border-radius:4px;display:block}
+.leg{display:flex;flex-wrap:wrap;gap:8px;margin-top:5px}
+.leg span{font-size:9px;display:flex;align-items:center;gap:3px;color:#5a8a9a}
+.leg span i{width:10px;height:3px;border-radius:1px;display:inline-block}
+
+/* 디버그 */
+#dbg{position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.9);color:#00ff88;font-size:10px;font-family:monospace;padding:4px 8px;z-index:99}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="tit">감정 인식 AI · 37가지</div>
+  <div class="inf" id="hdrInf">--</div>
+</div>
+<div id="log"></div>
+<button id="startBtn">▶ 카메라 시작</button>
+
+<div id="camBox"><video id="vid" playsinline muted></video><canvas id="ov"></canvas></div>
+<div id="mainBox">
+  <div class="m-emo" id="dE">—</div>
+  <div class="m-pct" id="dP">0%</div>
+  <div class="m-sub" id="dS"></div>
+</div>
+<div id="basePanel"></div>
+<div id="derivedPanel"></div>
+<div id="barBox"><div class="bar-t">▸ 기본 감정 실시간 차트</div><canvas id="barC"></canvas></div>
+<div id="histBox"><div class="hist-t">▸ 감정 변화 추이</div><canvas id="histC"></canvas><div class="leg" id="legB"></div></div>
+<div id="dbg">로딩 중...</div>
+
+<!-- face-api.js — 진짜 딥러닝 감정 인식 -->
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+<script>
+// ═══════════════ 정의 ═══════════════
+var BASE_KEYS = ['happy','neutral','sad','angry','surprised','fearful','disgusted'];
+var BASE_MAP = {happy:'happy',neutral:'neutral',sad:'sad',angry:'angry',surprised:'surprise',fearful:'fear',disgusted:'disgust'};
+var BASE = ['happy','neutral','sad','angry','surprise','fear','disgust'];
+
+var DR={excited:[['happy',.5],['surprise',.5]],joy:[['happy',.8],['surprise',.2]],content:[['happy',.6],['neutral',.4]],proud:[['happy',.7],['angry',.15],['neutral',.15]],hopeful:[['happy',.5],['surprise',.2],['neutral',.3]],relieved:[['happy',.4],['neutral',.4],['sad',.2]],amused:[['happy',.6],['surprise',.3],['disgust',.1]],euphoric:[['happy',.55],['surprise',.4],['fear',.05]],awe:[['surprise',.6],['fear',.4]],shocked:[['surprise',.6],['fear',.3],['angry',.1]],confused:[['surprise',.5],['neutral',.3],['fear',.2]],curious:[['surprise',.5],['neutral',.4],['happy',.1]],impressed:[['surprise',.5],['happy',.4],['neutral',.1]],contempt:[['angry',.5],['disgust',.5]],irritated:[['angry',.6],['neutral',.3],['disgust',.1]],frustrated:[['angry',.5],['sad',.3],['disgust',.2]],hostile:[['angry',.6],['disgust',.3],['fear',.1]],jealous:[['angry',.4],['sad',.3],['fear',.3]],resentful:[['angry',.4],['sad',.4],['disgust',.2]],melancholy:[['sad',.7],['neutral',.3]],lonely:[['sad',.6],['fear',.2],['neutral',.2]],nostalgic:[['sad',.4],['happy',.3],['neutral',.3]],grief:[['sad',.7],['fear',.15],['angry',.15]],disappointed:[['sad',.5],['angry',.2],['neutral',.3]],guilty:[['sad',.5],['fear',.3],['disgust',.2]],anxious:[['fear',.5],['sad',.3],['neutral',.2]],nervous:[['fear',.5],['surprise',.3],['neutral',.2]],panicked:[['fear',.6],['surprise',.3],['angry',.1]],insecure:[['fear',.4],['sad',.4],['neutral',.2]],bored:[['neutral',.7],['sad',.3]],stoic:[['neutral',.6],['angry',.2],['sad',.2]]};
+var ALL=BASE.concat(Object.keys(DR));
+
+var KO={happy:'행복',neutral:'무표정',sad:'슬픔',angry:'분노',surprise:'놀람',fear:'공포',disgust:'혐오',excited:'흥분',joy:'기쁨',content:'만족',proud:'자부심',hopeful:'희망',relieved:'안도',amused:'재미',euphoric:'황홀',awe:'경외',shocked:'충격',confused:'혼란',curious:'호기심',impressed:'감탄',contempt:'경멸',irritated:'짜증',frustrated:'좌절',hostile:'적대',jealous:'질투',resentful:'원한',melancholy:'우울',lonely:'외로움',nostalgic:'향수',grief:'비탄',disappointed:'실망',guilty:'죄책감',anxious:'불안',nervous:'긴장',panicked:'패닉',insecure:'불안정',bored:'지루',stoic:'무덤덤'};
+var COL={happy:'#50e664',neutral:'#8a8a78',sad:'#4488ee',angry:'#ff3838',surprise:'#ffd000',fear:'#ff8844',disgust:'#cc44bb',excited:'#00ccff',joy:'#33ff88',content:'#66dd88',proud:'#33ccaa',hopeful:'#55eeaa',relieved:'#88ddaa',amused:'#44eebb',euphoric:'#11ffdd',awe:'#00ffcc',shocked:'#0099ff',confused:'#55ccee',curious:'#66eeff',impressed:'#33dddd',contempt:'#dd4444',irritated:'#ee5533',frustrated:'#cc4455',hostile:'#ff2222',jealous:'#bb3355',resentful:'#aa2255',melancholy:'#5566cc',lonely:'#4488dd',nostalgic:'#7799bb',grief:'#3355dd',disappointed:'#5577cc',guilty:'#6688aa',anxious:'#ffaa66',nervous:'#ee9988',panicked:'#ff6655',insecure:'#cc88cc',bored:'#777766',stoic:'#999999'};
+var EMO={happy:'😊',neutral:'😐',sad:'😢',angry:'😠',surprise:'😮',fear:'😨',disgust:'🤢',excited:'🤩',joy:'😄',content:'😌',proud:'💪',hopeful:'🌟',relieved:'😮‍💨',amused:'😆',euphoric:'✨',awe:'🤯',shocked:'😱',confused:'🤔',curious:'🧐',impressed:'👏',contempt:'😤',irritated:'😒',frustrated:'😫',hostile:'👊',jealous:'😒',resentful:'😾',melancholy:'🌧',lonely:'🥺',nostalgic:'🍂',grief:'💔',disappointed:'😞',guilty:'😣',anxious:'😰',nervous:'😬',panicked:'🆘',insecure:'🫣',bored:'🥱',stoic:'🗿'};
+
+var DCATS=[['😊 긍정',['excited','joy','content','proud','hopeful','relieved','amused','euphoric']],['😮 놀람',['awe','shocked','confused','curious','impressed']],['😠 분노',['contempt','irritated','frustrated','hostile','jealous','resentful']],['😢 슬픔',['melancholy','lonely','nostalgic','grief','disappointed','guilty']],['😨 공포',['anxious','nervous','panicked','insecure']],['😐 기타',['bored','stoic']]];
+
+// ═══════════════ 상태 ═══════════════
+var sm = {}; ALL.forEach(function(e){ sm[e] = 0; });
+var ALPHA = 0.3;
+var HL = 100;
+var HK = ['happy','sad','angry','surprise','fear','neutral','disgust'];
+var hist = {}; HK.forEach(function(k){ hist[k] = []; for(var i=0;i<HL;i++) hist[k].push(0); });
+
+var logEl = document.getElementById('log');
+var dbgEl = document.getElementById('dbg');
+function lg(m,c){ var d=document.createElement('div'); d.className=c||''; d.textContent='▸ '+m; logEl.appendChild(d); logEl.scrollTop=99999; }
+function dbg(m){ dbgEl.textContent=m; }
+
+// ═══════════════ face-api.js 모델 로드 ═══════════════
+var MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+
+lg('시스템 시작');
+lg('face-api.js 모델 로딩...');
+dbg('모델 로딩 중...');
+
+Promise.all([
+  faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+  faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+  faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL)
+]).then(function(){
+  lg('모델 로드 완료! (TinyFaceDetector + FaceExpression + Landmark)','o');
+  dbg('모델 준비 완료!');
+  document.getElementById('startBtn').style.display = 'block';
+}).catch(function(err){
+  lg('모델 로드 실패: ' + err.message,'e');
+  dbg('ERROR: ' + err.message);
+});
+
+// ═══════════════ 파생 감정 ═══════════════
+function compDerived(base){
+  var r = {};
+  for(var n in DR){
+    var v = 0;
+    DR[n].forEach(function(x){ v += (base[x[0]]||0) * x[1]; });
+    r[n] = Math.min(v, 100);
+  }
+  return r;
+}
+
+function doSmooth(raw){
+  var dv = compDerived(raw);
+  var all = {};
+  for(var k in raw) all[k] = raw[k];
+  for(var k in dv) all[k] = dv[k];
+  ALL.forEach(function(e){ sm[e] += ((all[e]||0) - sm[e]) * ALPHA; });
+  HK.forEach(function(k){ hist[k].push(sm[k]||0); if(hist[k].length>HL) hist[k].shift(); });
+}
+
+function getDom(){ var b='neutral',bv=0; ALL.forEach(function(e){ if(sm[e]>bv){bv=sm[e];b=e;} }); return b; }
+
+// ═══════════════ UI 빌드 ═══════════════
+function buildBasePanel(){
+  var p = document.getElementById('basePanel');
+  p.innerHTML = '<div class="bp-title">▸ 기본 감정 (딥러닝 분석)</div>';
+  BASE.forEach(function(e){
+    var r = document.createElement('div');
+    r.className = 'bp-row'; r.id = 'br_'+e;
+    r.innerHTML = '<span class="bp-emoji">'+(EMO[e]||'')+'</span><span class="bp-name" style="color:'+COL[e]+'">'+KO[e]+'</span><div class="bp-bar"><div class="bp-fill" id="bf_'+e+'" style="background:'+COL[e]+'"></div></div><span class="bp-val" id="bv_'+e+'">0.00000</span>';
+    p.appendChild(r);
+  });
+}
+
+function buildDerivedPanel(){
+  var p = document.getElementById('derivedPanel');
+  p.innerHTML = '<div class="dp-title">▸ 파생 감정 (30가지)</div><div class="dp-grid" id="dpGrid"></div>';
+  var g = document.getElementById('dpGrid');
+  DCATS.forEach(function(c){
+    var h = document.createElement('div'); h.className='dp-cat'; h.textContent=c[0]; g.appendChild(h);
+    c[1].forEach(function(e){
+      var r = document.createElement('div'); r.className='dp-row'; r.id='dr_'+e;
+      r.innerHTML = '<span class="dp-nm" style="color:'+COL[e]+'">'+KO[e]+'</span><div class="dp-bg"><div class="dp-fl" id="df_'+e+'" style="background:'+COL[e]+'"></div></div><span class="dp-vl" id="dv_'+e+'" style="color:'+COL[e]+'">0.000</span>';
+      g.appendChild(r);
+    });
+  });
+}
+
+function buildLeg(){
+  var l = document.getElementById('legB');
+  HK.forEach(function(k){
+    var s = document.createElement('span');
+    s.innerHTML = '<i style="background:'+COL[k]+'"></i>'+KO[k];
+    l.appendChild(s);
+  });
+}
+
+// ═══════════════ UI 업데이트 ═══════════════
+function updateUI(){
+  var dm = getDom();
+  var pct = sm[dm]||0;
+  var c = COL[dm]||'#00d4ff';
+
+  document.getElementById('dE').textContent = (EMO[dm]||'')+' '+KO[dm];
+  document.getElementById('dE').style.color = c;
+  document.getElementById('dP').textContent = Math.round(pct)+'%';
+  document.getElementById('dP').style.color = c;
+
+  var sorted = ALL.slice().sort(function(a,b){ return sm[b]-sm[a]; });
+  var subs = [];
+  for(var i=1;i<4;i++){ if(sm[sorted[i]]>1) subs.push(KO[sorted[i]]); }
+  document.getElementById('dS').textContent = subs.join(' · ');
+
+  // 기본 감정 패널
+  BASE.forEach(function(e){
+    var fl = document.getElementById('bf_'+e);
+    var vl = document.getElementById('bv_'+e);
+    var rw = document.getElementById('br_'+e);
+    if(!fl) return;
+    var v = sm[e]||0;
+    fl.style.width = v+'%';
+    vl.textContent = (v/100).toFixed(5);
+    rw.className = e===dm ? 'bp-row top' : 'bp-row';
+  });
+
+  // 파생 감정 패널
+  Object.keys(DR).forEach(function(e){
+    var fl = document.getElementById('df_'+e);
+    var vl = document.getElementById('dv_'+e);
+    if(!fl) return;
+    var v = sm[e]||0;
+    fl.style.width = v+'%';
+    vl.textContent = (v/100).toFixed(3);
+  });
+
+  drawBar();
+  drawHist();
+}
+
+// ═══════════════ 바 차트 ═══════════════
+function drawBar(){
+  var cv=document.getElementById('barC'),r=cv.getBoundingClientRect();
+  var d=window.devicePixelRatio||1;
+  cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);
+  var ctx=cv.getContext('2d');ctx.scale(d,d);
+  var w=r.width,h=r.height,pad=8,lH=20;
+  var bW=(w-pad*2)/BASE.length, mH=h-pad-lH-6;
+
+  BASE.forEach(function(e,i){
+    var x=pad+i*bW, v=sm[e]||0, bh=(v/100)*mH;
+
+    // 바 배경
+    ctx.fillStyle='#0d1828';
+    ctx.fillRect(x+4,pad,bW-8,mH);
+
+    // 바
+    var grad=ctx.createLinearGradient(0,pad+mH-bh,0,pad+mH);
+    grad.addColorStop(0,COL[e]);
+    grad.addColorStop(1,COL[e]+'44');
+    ctx.fillStyle=grad;
+    ctx.fillRect(x+4,pad+mH-bh,bW-8,bh);
+
+    // 값
+    ctx.fillStyle='#fff';
+    ctx.font='bold 10px monospace';
+    ctx.textAlign='center';
+    if(bh>14) ctx.fillText(Math.round(v)+'%',x+bW/2,pad+mH-bh+12);
+    else if(v>0) ctx.fillText(Math.round(v)+'%',x+bW/2,pad+mH-bh-4);
+
+    // 라벨 + 이모지
+    ctx.fillStyle=COL[e];
+    ctx.font='12px sans-serif';
+    ctx.fillText((EMO[e]||'')+KO[e],x+bW/2,h-3);
+  });
+}
+
+// ═══════════════ 히스토리 ═══════════════
+function drawHist(){
+  var cv=document.getElementById('histC'),r=cv.getBoundingClientRect();
+  var d=window.devicePixelRatio||1;
+  cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);
+  var ctx=cv.getContext('2d');ctx.scale(d,d);
+  var w=r.width,h=r.height;
+
+  // 그리드
+  ctx.strokeStyle='#0d1828';ctx.lineWidth=0.5;
+  for(var y=0;y<=100;y+=25){
+    var py=h-(y/100)*h;
+    ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(w,py);ctx.stroke();
+    ctx.fillStyle='#1a3040';ctx.font='8px monospace';ctx.textAlign='left';
+    ctx.fillText(y+'%',2,py-2);
+  }
+
+  HK.forEach(function(k){
+    ctx.beginPath();ctx.strokeStyle=COL[k];ctx.lineWidth=1.5;
+    hist[k].forEach(function(v,i){
+      var x=(i/HL)*w, y=h-(v/100)*h;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  });
+}
+
+// ═══════════════ 오버레이 ═══════════════
+function drawOverlay(detections, vw, vh, displayW, displayH){
+  var c = document.getElementById('ov');
+  c.width = displayW;
+  c.height = displayH;
+  var ctx = c.getContext('2d');
+  ctx.clearRect(0,0,displayW,displayH);
+
+  var scaleX = displayW / vw;
+  var scaleY = displayH / vh;
+
+  detections.forEach(function(det){
+    var box = det.detection.box;
+    // 비디오 scaleX(-1) 보정
+    var bx = displayW - (box.x + box.width) * scaleX;
+    var by = box.y * scaleY;
+    var bw = box.width * scaleX;
+    var bh = box.height * scaleY;
+
+    var expr = det.expressions;
+    var dm = 'neutral', dmVal = 0;
+    for(var k in expr){
+      if(expr[k] > dmVal){ dmVal=expr[k]; dm=k; }
+    }
+
+    var mappedDm = BASE_MAP[dm] || dm;
+    var co = COL[mappedDm] || '#00d4ff';
+
+    // 코너 박스
+    ctx.strokeStyle = co;
+    ctx.lineWidth = 2;
+    ctx.shadowColor = co;
+    ctx.shadowBlur = 10;
+    var sz = 18;
+    [[bx,by,1,1],[bx+bw,by,-1,1],[bx,by+bh,1,-1],[bx+bw,by+bh,-1,-1]].forEach(function(a){
+      ctx.beginPath();
+      ctx.moveTo(a[0]+a[2]*sz,a[1]);ctx.lineTo(a[0],a[1]);ctx.lineTo(a[0],a[1]+a[3]*sz);
+      ctx.stroke();
+    });
+    ctx.shadowBlur=0;
+
+    // 주 감정 라벨
+    var lb = (EMO[mappedDm]||'')+' '+KO[mappedDm]+' '+Math.round(dmVal*100)+'%';
+    ctx.font = 'bold 14px "Noto Sans KR",sans-serif';
+    var tw = ctx.measureText(lb).width;
+    ctx.fillStyle = 'rgba(8,11,20,.88)';
+    ctx.fillRect(bx-2, by-26, tw+14, 24);
+    ctx.fillStyle = co;
+    ctx.fillText(lb, bx+5, by-7);
+
+    // ★ 오른쪽에 기본 7감정 전부 표시
+    var px2 = bx + bw + 8;
+    var py2 = by;
+    var rH = 17;
+    var pW = 115;
+
+    if(px2+pW+10 > displayW) px2 = bx - pW - 10;
+    if(px2 < 2) px2 = 2;
+
+    ctx.fillStyle = 'rgba(8,11,20,.88)';
+    ctx.fillRect(px2-4, py2-3, pW+8, BASE_KEYS.length*rH+8);
+
+    for(var bi=0; bi<BASE_KEYS.length; bi++){
+      var fk = BASE_KEYS[bi];
+      var mk = BASE_MAP[fk];
+      var v = (expr[fk]||0);
+      var ry = py2 + bi*rH + 12;
+      var isDom = (fk===dm);
+
+      ctx.font = isDom ? 'bold 12px "Noto Sans KR",sans-serif' : '11px "Noto Sans KR",sans-serif';
+      ctx.fillStyle = isDom ? COL[mk] : '#5a7a8a';
+      ctx.textAlign = 'left';
+      ctx.fillText(KO[mk], px2, ry);
+
+      ctx.font = '10px monospace';
+      ctx.fillStyle = isDom ? '#ffffff' : '#4a6a7a';
+      ctx.textAlign = 'right';
+      ctx.fillText(v.toFixed(5), px2+pW, ry);
+      ctx.textAlign = 'left';
+
+      // 미니 바
+      var barX = px2+30, barY = ry+2, barW = pW-68, barH = 3;
+      ctx.fillStyle = '#0a1420';
+      ctx.fillRect(barX, barY, barW, barH);
+      ctx.fillStyle = COL[mk]||(isDom?'#00d4ff':'#2a4a5a');
+      ctx.fillRect(barX, barY, barW*v, barH);
+    }
+  });
+}
+
+// ═══════════════ 시작 ═══════════════
+document.getElementById('startBtn').onclick = function(){
+  this.style.display = 'none';
+  var vid = document.getElementById('vid');
+
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode:'user', width:{ideal:480}, height:{ideal:360} },
+    audio: false
+  }).then(function(stream){
+    vid.srcObject = stream;
+    return vid.play();
+  }).then(function(){
+    lg('카메라 시작!','o');
+    dbg('분석 중...');
+    logEl.style.display = 'none';
+
+    document.getElementById('camBox').style.display = '';
+    document.getElementById('mainBox').style.display = '';
+    document.getElementById('basePanel').style.display = '';
+    document.getElementById('derivedPanel').style.display = '';
+    document.getElementById('barBox').style.display = '';
+    document.getElementById('histBox').style.display = '';
+    buildBasePanel();
+    buildDerivedPanel();
+    buildLeg();
+
+    // ═══════════════ 메인 루프 ═══════════════
+    var fpsC=0, fpsL=performance.now(), fpsV=0;
+    var analyzing = false;
+
+    function tick(){
+      requestAnimationFrame(tick);  // 무조건 다음 프레임 예약
+
+      if(vid.readyState < 2) return;
+      if(analyzing) return;  // 이전 분석 완료 대기
+
+      // FPS
+      fpsC++;
+      var now = performance.now();
+      if(now-fpsL>=1000){ fpsV=fpsC; fpsC=0; fpsL=now; document.getElementById('hdrInf').textContent=fpsV+' FPS'; }
+
+      analyzing = true;
+
+      // face-api.js로 얼굴 + 감정 분석
+      faceapi.detectAllFaces(vid, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.3 }))
+        .withFaceLandmarks()
+        .withFaceExpressions()
+        .then(function(detections){
+          analyzing = false;
+
+          if(detections && detections.length > 0){
+            // 첫 번째 얼굴의 감정값 변환
+            var expr = detections[0].expressions;
+            var raw = {};
+            for(var k in expr){
+              var mk = BASE_MAP[k];
+              if(mk) raw[mk] = expr[k] * 100;  // 0~1 → 0~100
+            }
+
+            doSmooth(raw);
+
+            // 오버레이 (모든 얼굴)
+            var displayW = vid.getBoundingClientRect().width;
+            var displayH = vid.getBoundingClientRect().height;
+            drawOverlay(detections, vid.videoWidth, vid.videoHeight, displayW, displayH);
+
+            dbg(fpsV+'fps | 얼굴:'+detections.length+'명 | '+(EMO[getDom()]||'')+KO[getDom()]+' '+Math.round(sm[getDom()])+'%');
+          } else {
+            ALL.forEach(function(e){ sm[e] *= 0.9; });
+            dbg(fpsV+'fps | 얼굴 없음');
+            var c=document.getElementById('ov');
+            var ctx=c.getContext('2d');
+            if(c.width>0) ctx.clearRect(0,0,c.width,c.height);
+          }
+
+          updateUI();
+        })
+        .catch(function(err){
+          analyzing = false;
+          dbg('분석 오류: '+err.message);
+        });
+    }
+
+    requestAnimationFrame(tick);
+
+  }).catch(function(err){
+    lg('카메라 오류: '+err.message,'e');
+    dbg('카메라 오류: '+err.message);
+    if(location.protocol!=='https:' && location.hostname!=='localhost'){
+      lg('HTTPS 필요! GitHub Pages에서 호스팅하세요.','e');
+    }
+  });
+};
+</script>
+</body>
+</html>
 .m-sub{font-size:12px;color:#4a7a90}
 .m-bar{width:70%;max-width:260px;height:7px;background:#0d1828;margin:6px auto;border-radius:4px;overflow:hidden}
 .m-fill{height:100%;border-radius:4px;transition:width .2s,background .2s}
