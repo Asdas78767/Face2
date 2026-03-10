@@ -3,854 +3,591 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Emotion Detector</title>
+<title>실시간 감정 인식기</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0e1a;color:#b0c8d8;font-family:Consolas,'Courier New',monospace;overflow-x:hidden}
-.top{background:#0d1220;border-bottom:1px solid #1a3050;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10}
-.top h1{font-size:13px;color:#00d4ff;letter-spacing:2px;font-weight:bold}
-.top .tag{font-size:9px;color:#2a6a80;border:1px solid #1a3a50;padding:1px 6px}
-#log{padding:10px;font-size:11px;color:#00d4ff;line-height:1.7;background:#080c14;max-height:200px;overflow-y:auto}
-.e{color:#ff4444}.o{color:#44ff88}.w{color:#ffaa44}
-#startBtn{display:none;width:80%;max-width:300px;margin:24px auto;padding:14px;font-size:15px;font-weight:bold;color:#00d4ff;background:rgba(0,212,255,.08);border:2px solid #00d4ff;font-family:inherit;letter-spacing:3px;cursor:pointer;text-align:center}
-.hide{display:none!important}
-#camBox{position:relative;width:100%;max-width:480px;margin:0 auto;background:#000;line-height:0}
+body{background:#080b14;color:#c8dce8;font-family:'Noto Sans KR',sans-serif;overflow-x:hidden}
+
+.hdr{background:#0c1020;border-bottom:1px solid #1a2844;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}
+.hdr .tit{font-size:13px;font-weight:900;color:#00d4ff;letter-spacing:1px}
+.hdr .tit small{font-size:10px;color:#2a6888;font-weight:400;margin-left:4px}
+.hdr .inf{font-size:10px;color:#2a6888;font-family:monospace;text-align:right}
+
+#log{padding:10px;font-size:11px;line-height:1.7;background:#060910;font-family:monospace}
+#log .o{color:#44ff88}#log .e{color:#ff4466}#log .w{color:#ffcc44}
+#log div{color:#00aad4}
+
+#startBtn{display:none;width:85%;max-width:320px;margin:36px auto;padding:15px;font-size:15px;font-weight:700;color:#00d4ff;background:rgba(0,180,255,.06);border:2px solid #00a0d0;border-radius:8px;font-family:inherit;cursor:pointer;text-align:center}
+
+/* 카메라 */
+#camBox{position:relative;width:100%;max-width:540px;margin:0 auto;background:#000;line-height:0;display:none}
 #camBox video{display:block;width:100%;transform:scaleX(-1)}
 #camBox canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
-#debug{position:absolute;bottom:4px;left:4px;color:#00ff88;font-size:10px;font-family:monospace;z-index:5;text-shadow:0 0 4px #000}
 
-.dom{text-align:center;padding:12px 0;border-bottom:1px solid #121a2a}
-.dom .en{font-size:18px;font-weight:bold;color:#00d4ff;letter-spacing:2px}
-.dom .pc{font-size:32px;font-weight:bold;color:#00d4ff;margin:2px 0}
-.dom .ko{font-size:12px;color:#4a7a90}
-.dom .br{width:70%;max-width:260px;height:7px;background:#0d1a28;margin:6px auto;border-radius:4px;overflow:hidden}
-.dom .bf{height:100%;width:0;border-radius:4px;transition:width .2s}
+/* 얼굴 탭 */
+.ftabs{display:flex;justify-content:center;gap:6px;padding:8px;flex-wrap:wrap;display:none}
+.ftab{padding:3px 12px;font-size:11px;font-weight:700;border:1px solid #1a3050;border-radius:16px;cursor:pointer;color:#4a7a90;transition:all .15s}
+.ftab.on{color:#00d4ff;border-color:#00a0d0;background:rgba(0,180,255,.1)}
 
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:1px 10px;padding:8px 12px}
-.grid .hd{grid-column:span 2;font-size:9px;color:#00a0c0;letter-spacing:1px;padding:5px 0 1px;margin-top:3px;border-top:1px solid #0d1a28}
-.grid .hd:first-child{border-top:none;margin-top:0}
-.er{display:flex;align-items:center;gap:3px;height:17px}
-.er .n{font-size:9px;width:60px;color:#3a5a6a;text-transform:uppercase;flex-shrink:0}
-.er .b{flex:1;height:4px;background:#0a1420;border-radius:2px;overflow:hidden}
-.er .f{height:100%;width:0;border-radius:2px;transition:width .2s}
-.er .v{font-size:8px;width:20px;text-align:right;color:#2a4a5a}
+/* 주 감정 */
+#mainBox{display:none;text-align:center;padding:12px}
+.m-emo{font-size:18px;font-weight:900;letter-spacing:1px}
+.m-pct{font-size:34px;font-weight:900;margin:2px 0}
+.m-sub{font-size:12px;color:#4a7a90}
+.m-bar{width:70%;max-width:260px;height:7px;background:#0d1828;margin:6px auto;border-radius:4px;overflow:hidden}
+.m-fill{height:100%;border-radius:4px;transition:width .2s,background .2s}
 
-.hs{padding:8px 12px;border-top:1px solid #0d1a28}
-.hs .t{font-size:9px;color:#2a5a70;letter-spacing:1px;margin-bottom:3px}
-#hC{width:100%;height:55px;background:#080e18;border:1px solid #121a2a;display:block}
-.lg{display:flex;flex-wrap:wrap;gap:5px;margin-top:3px}
-.lg i{font-style:normal;font-size:8px;display:flex;align-items:center;gap:2px}
-.lg i b{width:5px;height:5px;border-radius:50%;display:inline-block}
+/* 전체 감정 수치 패널 (교과서 스타일) */
+#scorePanel{display:none;padding:8px 12px}
+.sp-title{font-size:11px;color:#00a0c0;letter-spacing:1px;font-weight:700;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid #0d1828}
+
+.score-table{width:100%}
+.score-row{display:flex;align-items:center;height:24px;border-bottom:1px solid #080e18}
+.score-row .s-emoji{width:22px;font-size:13px;text-align:center;flex-shrink:0}
+.score-row .s-name{width:52px;font-size:11px;font-weight:700;flex-shrink:0}
+.score-row .s-bar{flex:1;height:6px;background:#0a1420;border-radius:3px;overflow:hidden;margin:0 6px}
+.score-row .s-fill{height:100%;border-radius:3px;transition:width .2s}
+.score-row .s-val{width:44px;font-size:10px;font-family:monospace;text-align:right;flex-shrink:0}
+.score-row.top .s-name{font-weight:900}
+.score-row.top .s-val{font-weight:900}
+
+/* 카테고리 접기 */
+.cat-hdr{display:flex;align-items:center;gap:6px;padding:6px 0 2px;cursor:pointer;user-select:none}
+.cat-hdr .cat-icon{font-size:12px}
+.cat-hdr .cat-name{font-size:10px;color:#00a0c0;letter-spacing:1px;font-weight:700}
+.cat-hdr .cat-arrow{font-size:9px;color:#2a5a70;margin-left:auto}
+.cat-body{overflow:hidden;transition:max-height .2s}
+
+/* 바 차트 */
+#barBox{display:none;padding:8px 12px;border-top:1px solid #0d1828}
+.bar-t{font-size:11px;color:#2a6888;font-weight:700;letter-spacing:1px;margin-bottom:4px}
+#barC{width:100%;height:110px;background:#060910;border:1px solid #0d1828;border-radius:4px;display:block}
+
+/* 히스토리 */
+#histBox{display:none;padding:8px 12px;border-top:1px solid #0d1828}
+.hist-t{font-size:11px;color:#2a6888;font-weight:700;letter-spacing:1px;margin-bottom:4px}
+#histC{width:100%;height:75px;background:#060910;border:1px solid #0d1828;border-radius:4px;display:block}
+.leg{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+.leg span{font-size:9px;display:flex;align-items:center;gap:3px;color:#4a7a90}
+.leg span i{width:8px;height:3px;border-radius:1px;display:inline-block}
 </style>
 </head>
 <body>
 
-<div class="top">
-  <h1>PSYCHO AI LAB</h1>
-  <span class="tag">37 EMOTIONS</span>
+<div class="hdr">
+  <div class="tit">감정 인식 AI<small>37가지</small></div>
+  <div class="inf"><span id="fpsEl">--</span> · <span id="faceCount">얼굴 0</span></div>
 </div>
-<div id="log"></div>
-<button id="startBtn">▶ START</button>
 
-<div id="camBox" class="hide">
-  <video id="vid" playsinline muted></video>
-  <canvas id="ov"></canvas>
-  <div id="debug"></div>
+<div id="log"></div>
+<button id="startBtn">▶ 카메라 시작</button>
+
+<div id="camBox"><video id="vid" playsinline muted></video><canvas id="ov"></canvas></div>
+<div class="ftabs" id="ftabs"></div>
+<div id="mainBox">
+  <div class="m-emo" id="dE">—</div>
+  <div class="m-pct" id="dP">0%</div>
+  <div class="m-sub" id="dS"></div>
+  <div class="m-bar"><div class="m-fill" id="dF"></div></div>
 </div>
-<div class="dom hide" id="domBox">
-  <div class="en" id="dE">—</div>
-  <div class="pc" id="dP">0%</div>
-  <div class="ko" id="dK"></div>
-  <div class="br"><div class="bf" id="dF"></div></div>
-</div>
-<div class="grid hide" id="grd"></div>
-<div class="hs hide" id="hsBox">
-  <div class="t">HISTORY</div>
-  <canvas id="hC"></canvas>
-  <div class="lg" id="lgB"></div>
+<div id="scorePanel"></div>
+<div id="barBox"><div class="bar-t">▸ 기본 감정 차트</div><canvas id="barC"></canvas></div>
+<div id="histBox">
+  <div class="hist-t">▸ 감정 변화 추이</div>
+  <canvas id="histC"></canvas>
+  <div class="leg" id="legB"></div>
 </div>
 
 <script type="module">
-// ── 로그 ──
-const logEl = document.getElementById('log');
-function log(m, c) {
-  const d = document.createElement('div');
-  d.className = c||''; d.textContent = '> ' + m;
-  logEl.appendChild(d); logEl.scrollTop = 99999;
-}
-log('시스템 시작');
-
-// ── 감정 ──
+// ═══════════════════════════════════════
+// 감정 정의
+// ═══════════════════════════════════════
 const BASE=['happy','neutral','sad','angry','surprise','fear','disgust'];
 const DR={excited:[['happy',.5],['surprise',.5]],joy:[['happy',.8],['surprise',.2]],content:[['happy',.6],['neutral',.4]],proud:[['happy',.7],['angry',.15],['neutral',.15]],hopeful:[['happy',.5],['surprise',.2],['neutral',.3]],relieved:[['happy',.4],['neutral',.4],['sad',.2]],amused:[['happy',.6],['surprise',.3],['disgust',.1]],euphoric:[['happy',.55],['surprise',.4],['fear',.05]],awe:[['surprise',.6],['fear',.4]],shocked:[['surprise',.6],['fear',.3],['angry',.1]],confused:[['surprise',.5],['neutral',.3],['fear',.2]],curious:[['surprise',.5],['neutral',.4],['happy',.1]],impressed:[['surprise',.5],['happy',.4],['neutral',.1]],contempt:[['angry',.5],['disgust',.5]],irritated:[['angry',.6],['neutral',.3],['disgust',.1]],frustrated:[['angry',.5],['sad',.3],['disgust',.2]],hostile:[['angry',.6],['disgust',.3],['fear',.1]],jealous:[['angry',.4],['sad',.3],['fear',.3]],resentful:[['angry',.4],['sad',.4],['disgust',.2]],melancholy:[['sad',.7],['neutral',.3]],lonely:[['sad',.6],['fear',.2],['neutral',.2]],nostalgic:[['sad',.4],['happy',.3],['neutral',.3]],grief:[['sad',.7],['fear',.15],['angry',.15]],disappointed:[['sad',.5],['angry',.2],['neutral',.3]],guilty:[['sad',.5],['fear',.3],['disgust',.2]],anxious:[['fear',.5],['sad',.3],['neutral',.2]],nervous:[['fear',.5],['surprise',.3],['neutral',.2]],panicked:[['fear',.6],['surprise',.3],['angry',.1]],insecure:[['fear',.4],['sad',.4],['neutral',.2]],bored:[['neutral',.7],['sad',.3]],stoic:[['neutral',.6],['angry',.2],['sad',.2]]};
 const ALL=[...BASE,...Object.keys(DR)];
 const KO={happy:'행복',neutral:'무표정',sad:'슬픔',angry:'분노',surprise:'놀람',fear:'공포',disgust:'혐오',excited:'흥분',joy:'기쁨',content:'만족',proud:'자부심',hopeful:'희망',relieved:'안도',amused:'재미',euphoric:'황홀',awe:'경외',shocked:'충격',confused:'혼란',curious:'호기심',impressed:'감탄',contempt:'경멸',irritated:'짜증',frustrated:'좌절',hostile:'적대',jealous:'질투',resentful:'원한',melancholy:'우울',lonely:'외로움',nostalgic:'향수',grief:'비탄',disappointed:'실망',guilty:'죄책감',anxious:'불안',nervous:'긴장',panicked:'패닉',insecure:'불안정',bored:'지루',stoic:'무덤덤'};
-const COL={happy:'#50e664',neutral:'#8a8a78',sad:'#3c78e6',angry:'#ff3232',surprise:'#ffd800',fear:'#ff8240',disgust:'#c83cbe',excited:'#00c8ff',joy:'#32ff82',content:'#78dc8c',proud:'#3cc8b4',hopeful:'#64ebaa',relieved:'#8cd2a0',amused:'#50f0c8',euphoric:'#1effdc',awe:'#00ffc8',shocked:'#00b4ff',confused:'#50c8e6',curious:'#64e6f0',impressed:'#32dcdc',contempt:'#dc3c3c',irritated:'#f05028',frustrated:'#c83c50',hostile:'#fa1e1e',jealous:'#be3250',resentful:'#b42850',melancholy:'#5064c8',lonely:'#3c82d2',nostalgic:'#648cb4',grief:'#3250dc',disappointed:'#466ebe',guilty:'#5a78aa',anxious:'#ffa064',nervous:'#e68c78',panicked:'#ff6450',insecure:'#d282c8',bored:'#646450',stoic:'#8c8c8c'};
-const CATS=[['BASE',BASE],['POSITIVE',['excited','joy','content','proud','hopeful','relieved','amused','euphoric']],['SURPRISE',['awe','shocked','confused','curious','impressed']],['ANGER',['contempt','irritated','frustrated','hostile','jealous','resentful']],['SAD',['melancholy','lonely','nostalgic','grief','disappointed','guilty']],['FEAR',['anxious','nervous','panicked','insecure']],['OTHER',['bored','stoic']]];
+const COL={happy:'#50e664',neutral:'#8a8a78',sad:'#4488ee',angry:'#ff3838',surprise:'#ffd000',fear:'#ff8844',disgust:'#cc44bb',excited:'#00ccff',joy:'#33ff88',content:'#66dd88',proud:'#33ccaa',hopeful:'#55eeaa',relieved:'#88ddaa',amused:'#44eebb',euphoric:'#11ffdd',awe:'#00ffcc',shocked:'#0099ff',confused:'#55ccee',curious:'#66eeff',impressed:'#33dddd',contempt:'#dd4444',irritated:'#ee5533',frustrated:'#cc4455',hostile:'#ff2222',jealous:'#bb3355',resentful:'#aa2255',melancholy:'#5566cc',lonely:'#4488dd',nostalgic:'#7799bb',grief:'#3355dd',disappointed:'#5577cc',guilty:'#6688aa',anxious:'#ffaa66',nervous:'#ee9988',panicked:'#ff6655',insecure:'#cc88cc',bored:'#777766',stoic:'#999999'};
+const EMO={happy:'😊',neutral:'😐',sad:'😢',angry:'😠',surprise:'😮',fear:'😨',disgust:'🤢',excited:'🤩',joy:'😄',content:'😌',proud:'💪',hopeful:'🌟',relieved:'😮‍💨',amused:'😆',euphoric:'✨',awe:'🤯',shocked:'😱',confused:'🤔',curious:'🧐',impressed:'👏',contempt:'😤',irritated:'😒',frustrated:'😫',hostile:'👊',jealous:'😒',resentful:'😾',melancholy:'🌧',lonely:'🥺',nostalgic:'🍂',grief:'💔',disappointed:'😞',guilty:'😣',anxious:'😰',nervous:'😬',panicked:'🆘',insecure:'🫣',bored:'🥱',stoic:'🗿'};
+const CATS=[['😊 긍정',['happy','excited','joy','content','proud','hopeful','relieved','amused','euphoric']],['😮 놀람',['surprise','awe','shocked','confused','curious','impressed']],['😠 분노',['angry','contempt','irritated','frustrated','hostile','jealous','resentful']],['😢 슬픔',['sad','melancholy','lonely','nostalgic','grief','disappointed','guilty']],['😨 공포',['fear','anxious','nervous','panicked','insecure']],['😐 기타',['neutral','bored','stoic']]];
 
-// ── 상태 ──
-const sm={};ALL.forEach(e=>sm[e]=0);
-const ALPHA=0.22, HL=80;
-const HK=['happy','sad','angry','surprise','fear','neutral','excited','anxious','contempt','nostalgic'];
-const hist={};HK.forEach(k=>{hist[k]=new Array(HL).fill(0);});
-let faceOk=false, frameN=0, faceN=0;
+// ═══════════════════════════════════════
+// 캘리브레이션 — 첫 2초간 기준값 수집
+// ═══════════════════════════════════════
+let calibrating = true;
+let calibFrames = 0;
+let calSum = { ear:0, browH:0, browF:0, mar:0, smile:0, noseM:0 };
+let calBase = null; // 기준값
 
-// ── 분석 ──
-const I={mT:13,mB:14,mL:61,mR:291,leT:159,leB:145,leL:33,leR:133,reT:386,reB:374,reL:362,reR:263,lbI:107,lbM:105,rbI:336,rbM:334,nose:1,chin:152,fh:10};
+// ═══════════════════════════════════════
+// 다중 얼굴 상태
+// ═══════════════════════════════════════
+const ALPHA=0.2, HL=100;
+const HK=['happy','sad','angry','surprise','fear','neutral','excited','anxious'];
 
+class Face {
+  constructor(id){
+    this.id=id;
+    this.sm={};ALL.forEach(e=>this.sm[e]=0);
+    this.hist={};HK.forEach(k=>this.hist[k]=new Array(HL).fill(0));
+  }
+  update(raw){
+    const dv={};for(const n in DR){let v=0;DR[n].forEach(x=>v+=(raw[x[0]]||0)*x[1]);dv[n]=Math.min(v,100);}
+    const all={...raw,...dv};
+    ALL.forEach(e=>{this.sm[e]+=((all[e]||0)-this.sm[e])*ALPHA;});
+    HK.forEach(k=>{this.hist[k].push(this.sm[k]||0);if(this.hist[k].length>HL)this.hist[k].shift();});
+  }
+  fade(){ALL.forEach(e=>{this.sm[e]*=0.88;});}
+  getDom(){let b='neutral',bv=0;ALL.forEach(e=>{if(this.sm[e]>bv){bv=this.sm[e];b=e;}});return b;}
+}
+
+let faces=[new Face(0)];
+let aFace=0; // 선택된 얼굴
+
+// ═══════════════════════════════════════
+// 랜드마크 분석 — 캘리브레이션 기반
+// ═══════════════════════════════════════
+const IX={mT:13,mB:14,mL:61,mR:291,leT:159,leB:145,leL:33,leR:133,reT:386,reB:374,reL:362,reR:263,lbI:107,lbM:105,rbI:336,rbM:334,nose:1,chin:152,fh:10};
 function dist(a,b){return Math.hypot(a[0]-b[0],a[1]-b[1]);}
-function cl(v,lo=0,hi=100){return Math.min(Math.max(v,lo),hi);}
 
-function analyze(lms){
-  const g=i=>[lms[i].x, lms[i].y];
+function extractFeatures(lms){
+  const g=i=>[lms[i].x,lms[i].y];
+  const fh=dist(g(IX.fh),g(IX.chin));
+  if(fh<0.01)return null;
 
-  const mouth_v=dist(g(I.mT),g(I.mB));
-  const mouth_h=dist(g(I.mL),g(I.mR));
-  const mar=mouth_v/(mouth_h+1e-5);
+  const mh=dist(g(IX.mL),g(IX.mR));
+  const mar=dist(g(IX.mT),g(IX.mB))/(mh+1e-5);
+  const cL=g(IX.mL),cR=g(IX.mR),cT=g(IX.mT);
+  const smile=((cT[1]-cL[1])+(cT[1]-cR[1]))/2/(fh+1e-5);
 
-  const cL=g(I.mL), cR=g(I.mR), cT=g(I.mT);
-  const smile_val=((cT[1]-cL[1])+(cT[1]-cR[1]))/2;
-  const face_h=dist(g(I.fh),g(I.chin));
-  const smile=smile_val/(face_h+1e-5);
-
-  const le_v=dist(g(I.leT),g(I.leB)), le_h=dist(g(I.leL),g(I.leR));
-  const re_v=dist(g(I.reT),g(I.reB)), re_h=dist(g(I.reL),g(I.reR));
+  const le_v=dist(g(IX.leT),g(IX.leB)),le_h=dist(g(IX.leL),g(IX.leR));
+  const re_v=dist(g(IX.reT),g(IX.reB)),re_h=dist(g(IX.reL),g(IX.reR));
   const ear=((le_v/(le_h+1e-5))+(re_v/(re_h+1e-5)))/2;
 
-  const lb_h=g(I.leT)[1]-g(I.lbM)[1];
-  const rb_h=g(I.reT)[1]-g(I.rbM)[1];
-  const browH=(lb_h+rb_h)/2/(face_h+1e-5);
+  const browH=((g(IX.leT)[1]-g(IX.lbM)[1])+(g(IX.reT)[1]-g(IX.rbM)[1]))/2/(fh+1e-5);
+  const browF=dist(g(IX.lbI),g(IX.rbI))/(fh+1e-5);
+  const noseM=dist(g(IX.nose),g(IX.mT))/(fh+1e-5);
+  const lipAsym=Math.abs(cL[1]-cR[1])/(fh+1e-5);
 
-  const browF=dist(g(I.lbI),g(I.rbI))/(face_h+1e-5);
-  const noseM=dist(g(I.nose),g(I.mT))/(face_h+1e-5);
+  return {ear, browH, browF, mar, smile, noseM, lipAsym};
+}
 
-  // 입꼬리 비대칭 (경멸 감지)
-  const lipAsym=Math.abs(cL[1]-cR[1])/(face_h+1e-5);
+function featuresToScores(ft){
+  if(!ft) return null;
 
+  // 캘리브레이션 기준 대비 변화량 사용
+  const base = calBase || {ear:0.22, browH:0.07, browF:0.27, mar:0.06, smile:0, noseM:0.12};
+
+  // 기준 대비 차이
+  const dEar    = ft.ear - base.ear;        // + = 눈 더 뜸
+  const dBrowH  = ft.browH - base.browH;    // + = 눈썹 더 올라감
+  const dBrowF  = base.browF - ft.browF;    // + = 눈썹 더 찌푸림 (간격 좁아짐)
+  const dMar    = ft.mar - base.mar;        // + = 입 더 벌림
+  const dSmile  = ft.smile - base.smile;    // + = 입꼬리 더 올라감
+  const dNoseM  = base.noseM - ft.noseM;   // + = 코-입 거리 줄어듦
+
+  const cl=v=>Math.min(Math.max(v,0),100);
   const s={};
 
-  // 각 감정 점수 — 더 넓은 민감도
-  s.happy    = cl((Math.max(0, smile*18) + Math.max(0,(0.19-ear)*6)) * 22);
-  s.surprise = cl((Math.max(0,(ear-0.20)*12) + Math.max(0,(browH-0.065)*12) + Math.max(0,(mar-0.12)*6)) * 14);
-  s.sad      = cl((Math.max(0, -smile*14) + Math.max(0,(browH-0.06)*4) + Math.max(0,(0.19-ear)*3)) * 16);
-  s.angry    = cl((Math.max(0,(0.28-browF)*8) + Math.max(0,(0.18-ear)*5) + Math.max(0,-smile*6)) * 14);
-  s.fear     = cl((Math.max(0,(ear-0.19)*10) + Math.max(0,(browH-0.06)*10) + Math.max(0,(mar-0.06)*3)) * 11);
-  s.disgust  = cl((Math.max(0,(0.13-noseM)*12) + Math.max(0,-smile*4) + lipAsym*15) * 16);
+  // Happy: 입꼬리 올라감 (가장 중요) + 눈 살짝 좁아짐
+  s.happy = cl(
+    Math.max(0, dSmile * 300) +
+    Math.max(0, -dEar * 80)
+  );
 
-  const otherSum = s.happy+s.surprise+s.sad+s.angry+s.fear+s.disgust;
-  s.neutral = cl(100 - otherSum*0.7, 3, 100);
+  // Surprise: 눈 크게 뜸 + 눈썹 올라감 + 입 벌림 — 임계값 높임!
+  s.surprise = cl(
+    Math.max(0, dEar * 120) +
+    Math.max(0, dBrowH * 120) +
+    Math.max(0, dMar * 60)
+  );
 
-  // 정규화
-  let total=0; for(const k in s) total+=s[k];
-  if(total<1) total=1;
+  // Sad: 입꼬리 내림 + 눈썹 내측 약간 올라감
+  s.sad = cl(
+    Math.max(0, -dSmile * 250) +
+    Math.max(0, dBrowH * 40)
+  );
+
+  // Angry: 눈썹 찌푸림 + 눈 좁아짐 + 입꼬리 내림
+  s.angry = cl(
+    Math.max(0, dBrowF * 120) +
+    Math.max(0, -dEar * 60) +
+    Math.max(0, -dSmile * 80)
+  );
+
+  // Fear: 눈 크게 + 눈썹 올라감 + 입 약간 벌림 (surprise보다 눈썹 비중 높음)
+  s.fear = cl(
+    Math.max(0, dEar * 80) +
+    Math.max(0, dBrowH * 140) +
+    Math.max(0, dMar * 30)
+  );
+
+  // Disgust: 코-입 줄어듦 + 입꼬리 비대칭/내림
+  s.disgust = cl(
+    Math.max(0, dNoseM * 200) +
+    Math.max(0, -dSmile * 60) +
+    ft.lipAsym * 100
+  );
+
+  // Neutral: 다른 감정이 낮으면 높음
+  const active = s.happy+s.surprise+s.sad+s.angry+s.fear+s.disgust;
+  s.neutral = cl(100 - active * 1.2);
+  if(s.neutral<2)s.neutral=2;
+
+  // 정규화 (합 = 100)
+  let total=0; for(const k in s) total+=s[k]; if(total<1)total=1;
   for(const k in s) s[k]=(s[k]/total)*100;
 
   return s;
 }
 
-function compDerived(b){
-  const r={};
-  for(const n in DR){
-    let v=0; DR[n].forEach(x=>v+=(b[x[0]]||0)*x[1]);
-    r[n]=Math.min(v,100);
-  }
-  return r;
-}
+// ═══════════════════════════════════════
+// 로그
+// ═══════════════════════════════════════
+const logEl=document.getElementById('log');
+function log(m,c){const d=document.createElement('div');d.className=c||'';d.textContent='▸ '+m;logEl.appendChild(d);logEl.scrollTop=99999;}
 
-function doSmooth(raw,found){
-  faceOk=found;
-  if(!found){ALL.forEach(e=>{sm[e]*=0.92;});return;}
-  const dv=compDerived(raw);
-  const all={...raw,...dv};
-  ALL.forEach(e=>{sm[e]+=((all[e]||0)-sm[e])*ALPHA;});
-  HK.forEach(k=>{hist[k].push(sm[k]||0);if(hist[k].length>HL)hist[k].shift();});
-}
-
-function getDom(){let b='neutral',bv=0;ALL.forEach(e=>{if(sm[e]>bv){bv=sm[e];b=e;}});return b;}
-
-// ── UI ──
-function buildGrid(){
-  const g=document.getElementById('grd');g.innerHTML='';
+// ═══════════════════════════════════════
+// UI 빌드
+// ═══════════════════════════════════════
+function buildScorePanel(){
+  const p=document.getElementById('scorePanel');
+  p.innerHTML='';
   CATS.forEach(([cat,emos])=>{
-    const h=document.createElement('div');h.className='hd';h.textContent=cat;g.appendChild(h);
+    const sec=document.createElement('div');
+    const hdr=document.createElement('div');
+    hdr.className='cat-hdr';
+    hdr.innerHTML=`<span class="cat-name">${cat}</span><span class="cat-arrow">▼</span>`;
+    sec.appendChild(hdr);
+
+    const body=document.createElement('div');
+    body.className='cat-body';
+    body.style.maxHeight='999px';
+
     emos.forEach(e=>{
-      const r=document.createElement('div');r.className='er';r.id='r_'+e;
-      r.innerHTML=`<span class="n">${e.substr(0,9)}</span><div class="b"><div class="f" id="f_${e}" style="background:${COL[e]}"></div></div><span class="v" id="v_${e}">0</span>`;
-      g.appendChild(r);
+      const r=document.createElement('div');
+      r.className='score-row';r.id='sr_'+e;
+      r.innerHTML=`<span class="s-emoji">${EMO[e]||''}</span><span class="s-name" style="color:${COL[e]}">${KO[e]}</span><div class="s-bar"><div class="s-fill" id="sf_${e}" style="background:${COL[e]}"></div></div><span class="s-val" id="sv_${e}" style="color:${COL[e]}">0.000</span>`;
+      body.appendChild(r);
     });
+
+    sec.appendChild(body);
+    p.appendChild(sec);
+
+    // 접기 토글
+    hdr.onclick=()=>{
+      const open=body.style.maxHeight!=='0px';
+      body.style.maxHeight=open?'0px':'999px';
+      hdr.querySelector('.cat-arrow').textContent=open?'▶':'▼';
+    };
   });
 }
-function buildLeg(){
-  const l=document.getElementById('lgB');
+
+function buildLegend(){
+  const l=document.getElementById('legB');
   HK.forEach(k=>{
-    const s=document.createElement('i');s.style.color=COL[k];
-    s.innerHTML=`<b style="background:${COL[k]}"></b>${k.substr(0,5)}`;
+    const s=document.createElement('span');
+    s.innerHTML=`<i style="background:${COL[k]}"></i>${KO[k]}`;
     l.appendChild(s);
   });
 }
 
+// ═══════════════════════════════════════
+// UI 업데이트
+// ═══════════════════════════════════════
 function updateUI(){
-  const dm=getDom(), pct=sm[dm]||0, c=COL[dm]||'#00d4ff';
-  document.getElementById('dE').textContent=dm.toUpperCase();
+  const f=faces[aFace]; if(!f)return;
+  const sm=f.sm, dm=f.getDom();
+  const pct=sm[dm]||0, c=COL[dm]||'#00d4ff';
+
+  // 주 감정
+  document.getElementById('dE').textContent=`${EMO[dm]||''} ${KO[dm]}`;
   document.getElementById('dE').style.color=c;
   document.getElementById('dP').textContent=Math.round(pct)+'%';
   document.getElementById('dP').style.color=c;
-  document.getElementById('dK').textContent=KO[dm]||'';
-  const df=document.getElementById('dF');df.style.width=pct+'%';df.style.background=c;
 
+  const sorted=[...ALL].sort((a,b)=>sm[b]-sm[a]);
+  document.getElementById('dS').textContent=sorted.slice(1,4).filter(e=>sm[e]>1).map(e=>KO[e]).join(' · ');
+  document.getElementById('dF').style.width=pct+'%';
+  document.getElementById('dF').style.background=c;
+
+  // 전체 수치 — 소수점 표시 (교과서 스타일)
   ALL.forEach(e=>{
-    const f=document.getElementById('f_'+e);
-    const v=document.getElementById('v_'+e);
-    const rw=document.getElementById('r_'+e);
-    if(!f)return;
-    f.style.width=Math.round(sm[e])+'%';
-    v.textContent=Math.round(sm[e]);
-    const nm=rw.querySelector('.n');
-    nm.style.color = e===dm ? COL[e] : '#3a5a6a';
-    nm.style.fontWeight = e===dm ? 'bold' : 'normal';
+    const fl=document.getElementById('sf_'+e);
+    const vl=document.getElementById('sv_'+e);
+    const rw=document.getElementById('sr_'+e);
+    if(!fl)return;
+    const v=sm[e]||0;
+    fl.style.width=v+'%';
+    vl.textContent=(v/100).toFixed(4); // 0.xxxx 형태
+    rw.className = e===dm ? 'score-row top' : 'score-row';
   });
 
-  // 히스토리 캔버스
-  const cv=document.getElementById('hC');
-  const rect=cv.getBoundingClientRect();
-  const dpr=window.devicePixelRatio||1;
-  cv.width=Math.round(rect.width*dpr);
-  cv.height=Math.round(rect.height*dpr);
-  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
-  const w=rect.width,h=rect.height;
+  // 얼굴 탭
+  const tabs=document.getElementById('ftabs');
+  while(tabs.children.length<faces.length){
+    const t=document.createElement('div');
+    t.className='ftab';
+    tabs.appendChild(t);
+  }
+  while(tabs.children.length>faces.length && tabs.children.length>1){
+    tabs.removeChild(tabs.lastChild);
+  }
+  [...tabs.children].forEach((t,i)=>{
+    const fd=faces[i]?.getDom()||'neutral';
+    t.textContent=`${EMO[fd]||''} 얼굴${i+1}`;
+    t.className=i===aFace?'ftab on':'ftab';
+    t.onclick=()=>{aFace=i;};
+  });
+
+  document.getElementById('faceCount').textContent=`얼굴 ${faces.filter(f=>f.sm[f.getDom()]>2).length}명`;
+
+  drawBarChart(sm);
+  drawHist(f.hist);
+}
+
+// 바 차트
+function drawBarChart(sm){
+  const cv=document.getElementById('barC');
+  const r=cv.getBoundingClientRect();
+  const d=window.devicePixelRatio||1;
+  cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);
+  const ctx=cv.getContext('2d');ctx.scale(d,d);
+  const w=r.width,h=r.height,pad=6,lH=16;
+  const bW=(w-pad*2)/BASE.length, mH=h-pad-lH-4;
+
+  BASE.forEach((e,i)=>{
+    const x=pad+i*bW, v=sm[e]||0, bh=(v/100)*mH;
+    ctx.fillStyle='#0d1828';ctx.fillRect(x+3,pad,bW-6,mH);
+    ctx.fillStyle=COL[e];ctx.fillRect(x+3,pad+mH-bh,bW-6,bh);
+    ctx.fillStyle=COL[e];ctx.font='bold 9px monospace';ctx.textAlign='center';
+    if(bh>12) ctx.fillText(Math.round(v),x+bW/2,pad+mH-bh+11);
+    else ctx.fillText(Math.round(v),x+bW/2,pad+mH-bh-3);
+    ctx.fillStyle='#4a7a90';ctx.font='10px sans-serif';
+    ctx.fillText(KO[e],x+bW/2,h-2);
+  });
+}
+
+// 히스토리
+function drawHist(hd){
+  const cv=document.getElementById('histC');
+  const r=cv.getBoundingClientRect();
+  const d=window.devicePixelRatio||1;
+  cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);
+  const ctx=cv.getContext('2d');ctx.scale(d,d);
+  const w=r.width,h=r.height;
   ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle='#0d1828';ctx.lineWidth=0.5;
+  for(let y=0;y<=100;y+=25){const py=h-(y/100)*h;ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(w,py);ctx.stroke();}
   HK.forEach(k=>{
-    ctx.beginPath();ctx.strokeStyle=COL[k];ctx.lineWidth=1;
-    hist[k].forEach((val,i)=>{
-      const x=(i/HL)*w, y=h-(val/100)*h;
-      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-    });
+    if(!hd[k])return;
+    ctx.beginPath();ctx.strokeStyle=COL[k];ctx.lineWidth=1.5;
+    hd[k].forEach((v,i)=>{const x=(i/HL)*w,y=h-(v/100)*h;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
     ctx.stroke();
   });
 }
 
-function drawOverlay(lms,vw,vh){
+// 오버레이 — 모든 얼굴에 전체 수치 표시
+function drawOv(allLms,vw,vh){
   const c=document.getElementById('ov');
-  c.width=vw; c.height=vh;
+  c.width=vw;c.height=vh;
   const ctx=c.getContext('2d');
   ctx.clearRect(0,0,vw,vh);
-  if(!faceOk||!lms||!lms.length)return;
 
-  const dm=getDom(), co=COL[dm]||'#00d4ff';
-  let minX=1,minY=1,maxX=0,maxY=0;
-  for(let i=0;i<lms.length;i++){
-    if(lms[i].x<minX)minX=lms[i].x;
-    if(lms[i].x>maxX)maxX=lms[i].x;
-    if(lms[i].y<minY)minY=lms[i].y;
-    if(lms[i].y>maxY)maxY=lms[i].y;
-  }
-  const pd=0.04;
-  // 비디오가 scaleX(-1) 이므로 x 반전
-  const bx=(1-maxX-pd)*vw, by=(minY-pd)*vh;
-  const bw=(maxX-minX+pd*2)*vw, bh=(maxY-minY+pd*2)*vh;
+  allLms.forEach((lms,fi)=>{
+    const f=faces[fi]; if(!f)return;
+    const dm=f.getDom(), co=COL[dm]||'#00d4ff';
 
-  // 코너 라인
-  ctx.strokeStyle=co; ctx.lineWidth=2;
-  ctx.shadowColor=co; ctx.shadowBlur=8;
-  const sz=16;
-  [[bx,by,1,1],[bx+bw,by,-1,1],[bx,by+bh,1,-1],[bx+bw,by+bh,-1,-1]].forEach(([px,py,dx,dy])=>{
+    let minX=1,minY=1,maxX=0,maxY=0;
+    for(let i=0;i<lms.length;i++){
+      if(lms[i].x<minX)minX=lms[i].x;if(lms[i].x>maxX)maxX=lms[i].x;
+      if(lms[i].y<minY)minY=lms[i].y;if(lms[i].y>maxY)maxY=lms[i].y;
+    }
+    const pd=0.04;
+    const bx=(1-maxX-pd)*vw,by=(minY-pd)*vh;
+    const bw=(maxX-minX+pd*2)*vw,bh=(maxY-minY+pd*2)*vh;
+
+    // 코너
+    ctx.strokeStyle=co;ctx.lineWidth=2;ctx.shadowColor=co;ctx.shadowBlur=8;
+    const sz=16;
+    [[bx,by,1,1],[bx+bw,by,-1,1],[bx,by+bh,1,-1],[bx+bw,by+bh,-1,-1]].forEach(([px,py,dx,dy])=>{
+      ctx.beginPath();ctx.moveTo(px+dx*sz,py);ctx.lineTo(px,py);ctx.lineTo(px,py+dy*sz);ctx.stroke();
+    });
+    ctx.shadowBlur=0;
+
+    // 라벨
+    ctx.font='bold 13px "Noto Sans KR",sans-serif';
+    const lb=`${EMO[dm]||''} ${KO[dm]} ${Math.round(f.sm[dm])}%`;
+    const tw=ctx.measureText(lb).width;
+    ctx.fillStyle='rgba(8,11,20,.88)';
     ctx.beginPath();
-    ctx.moveTo(px+dx*sz,py); ctx.lineTo(px,py); ctx.lineTo(px,py+dy*sz);
-    ctx.stroke();
+    if(ctx.roundRect) ctx.roundRect(bx-2,by-24,tw+14,22,4);
+    else ctx.rect(bx-2,by-24,tw+14,22);
+    ctx.fill();
+    ctx.fillStyle=co;
+    ctx.fillText(lb,bx+5,by-8);
+
+    // ★ 오른쪽에 기본 감정 7개 전체 수치 표시 (교과서 스타일)
+    const panelX = bx+bw+8;
+    const panelY = by;
+    const rowH = 16;
+    const panelW = 120;
+
+    // 배경
+    ctx.fillStyle='rgba(8,11,20,.82)';
+    ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(panelX-4,panelY-2,panelW+8,BASE.length*rowH+6,4);
+    else ctx.rect(panelX-4,panelY-2,panelW+8,BASE.length*rowH+6);
+    ctx.fill();
+
+    ctx.font='11px "Noto Sans KR",sans-serif';
+    BASE.forEach((e,i)=>{
+      const y=panelY+i*rowH+12;
+      const v=f.sm[e]||0;
+      const isDom=(e===dm);
+
+      // 이름
+      ctx.fillStyle=isDom?COL[e]:'#5a7a8a';
+      ctx.font=isDom?'bold 11px "Noto Sans KR",sans-serif':'11px "Noto Sans KR",sans-serif';
+      ctx.fillText(KO[e],panelX,y);
+
+      // 수치
+      ctx.fillStyle=isDom?COL[e]:'#4a6a7a';
+      ctx.font='10px monospace';
+      ctx.textAlign='right';
+      ctx.fillText((v/100).toFixed(4),panelX+panelW,y);
+      ctx.textAlign='left';
+    });
+
+    // 다중 얼굴 번호
+    if(allLms.length>1){
+      ctx.fillStyle='rgba(8,11,20,.8)';
+      ctx.beginPath();ctx.arc(bx+bw-2,by+2,10,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=co;ctx.font='bold 11px monospace';ctx.textAlign='center';
+      ctx.fillText(fi+1,bx+bw-2,by+6);ctx.textAlign='left';
+    }
   });
-  ctx.shadowBlur=0;
-
-  // 라벨
-  const lb=`${dm.toUpperCase()} ${KO[dm]||''} ${Math.round(sm[dm])}%`;
-  ctx.font='bold 12px monospace';
-  const tw=ctx.measureText(lb).width;
-  ctx.fillStyle='rgba(8,12,20,.85)';
-  ctx.fillRect(bx, by-20, tw+10, 18);
-  ctx.fillStyle=co;
-  ctx.fillText(lb, bx+5, by-7);
-
-  // top3 서브
-  const sorted=[...ALL].sort((a,b)=>sm[b]-sm[a]);
-  ctx.font='11px monospace';
-  let yi=0;
-  for(let i=1;i<4;i++){
-    const em=sorted[i];
-    if(sm[em]<1)break;
-    ctx.fillStyle=COL[em]||'#aaa';
-    ctx.fillText(`${em} ${Math.round(sm[em])}%`, bx, by+bh+14+yi*14);
-    yi++;
-  }
 }
 
-// ── MediaPipe 로딩 ──
-log('MediaPipe Tasks Vision 로딩...');
-
-let landmarker = null;
-
-import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/vision_bundle.mjs").then(async (vision) => {
-  log('모듈 로드 성공!', 'o');
-  log('WASM 파일셋 초기화...');
-
-  try {
-    const filesetResolver = await vision.FilesetResolver.forVisionTasks(
-      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm"
-    );
-    log('WASM 준비 완료', 'o');
-    log('얼굴 모델 다운로드 중... (처음만 느림)');
-
-    landmarker = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
-      baseOptions: {
-        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-        delegate: "GPU"
-      },
-      outputFaceBlendshapes: false,
-      runningMode: "VIDEO",
-      numFaces: 1
-    });
-
-    log('FaceLandmarker 준비 완료!', 'o');
-    log('START 버튼을 눌러주세요.', 'o');
-    document.getElementById('startBtn').style.display = 'block';
-
-  } catch(err) {
-    log('모델 로드 실패: ' + err.message, 'e');
-    log('GPU 대신 CPU로 재시도...', 'w');
-
-    try {
-      const filesetResolver = await vision.FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm"
-      );
-      landmarker = await vision.FaceLandmarker.createFromOptions(filesetResolver, {
-        baseOptions: {
-          modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-          delegate: "CPU"
-        },
-        outputFaceBlendshapes: false,
-        runningMode: "VIDEO",
-        numFaces: 1
-      });
-      log('CPU 모드 준비 완료!', 'o');
-      document.getElementById('startBtn').style.display = 'block';
-    } catch(err2) {
-      log('완전 실패: ' + err2.message, 'e');
-    }
-  }
-
-}).catch(err => {
-  log('모듈 import 실패: ' + err.message, 'e');
-  log('인터넷 연결 및 HTTPS를 확인하세요', 'e');
-});
-
-// ── 시작 ──
-document.getElementById('startBtn').addEventListener('click', async function(){
-  this.style.display='none';
-
-  document.getElementById('camBox').classList.remove('hide');
-  document.getElementById('domBox').classList.remove('hide');
-  document.getElementById('grd').classList.remove('hide');
-  document.getElementById('hsBox').classList.remove('hide');
-  buildGrid(); buildLeg();
-
-  const vid = document.getElementById('vid');
-  const debugEl = document.getElementById('debug');
-
-  try {
-    log('카메라 요청 중...');
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode:'user', width:{ideal:480}, height:{ideal:360} },
-      audio: false
-    });
-    vid.srcObject = stream;
-    await vid.play();
-    log('카메라 시작!', 'o');
-    logEl.style.display = 'none';
-  } catch(err) {
-    log('카메라 오류: ' + err.message, 'e');
-    if(location.protocol !== 'https:' && location.hostname !== 'localhost') {
-      log('HTTPS가 필요합니다! GitHub Pages에서 호스팅하세요.', 'e');
-    }
-    return;
-  }
-
-  if(!landmarker) {
-    log('FaceLandmarker가 준비되지 않음', 'e');
-    return;
-  }
-
-  // ── 프레임 루프 ──
-  let lastTime = -1;
-  let fpsCount = 0, fpsLast = performance.now(), fpsVal = 0;
-
-  function processFrame() {
-    requestAnimationFrame(processFrame);
-
-    if(vid.readyState < 2) return;
-
-    frameN++;
-    const now = performance.now();
-
-    // FPS
-    fpsCount++;
-    if(now - fpsLast >= 1000) {
-      fpsVal = fpsCount;
-      fpsCount = 0;
-      fpsLast = now;
-    }
-
-    // MediaPipe는 같은 timestamp 두번 못씀
-    const ts = Math.round(now);
-    if(ts <= lastTime) return;
-    lastTime = ts;
-
-    try {
-      const result = landmarker.detectForVideo(vid, ts);
-
-      if(result && result.faceLandmarks && result.faceLandmarks.length > 0) {
-        const lms = result.faceLandmarks[0];
-        faceN++;
-        const raw = analyze(lms);
-        doSmooth(raw, true);
-        drawOverlay(lms, vid.videoWidth, vid.videoHeight);
-
-        // 디버그
-        debugEl.textContent = `${fpsVal}fps | face:${lms.length}pts | #${faceN}`;
-      } else {
-        doSmooth({}, false);
-        drawOverlay(null, vid.videoWidth, vid.videoHeight);
-        debugEl.textContent = `${fpsVal}fps | no face | frame:${frameN}`;
-      }
-    } catch(e) {
-      doSmooth({}, false);
-      debugEl.textContent = `err: ${e.message}`;
-    }
-
-    updateUI();
-  }
-
-  // 첫 프레임 대기 후 루프 시작
-  setTimeout(() => {
-    log('분석 루프 시작!', 'o');
-    requestAnimationFrame(processFrame);
-  }, 500);
-});
-</script>
-</body>
-</html>
-.emotions{display:grid;grid-template-columns:1fr 1fr;gap:1px 10px;padding:8px 12px}
-.emotions .hd{grid-column:span 2;font-size:10px;color:#00a0c0;letter-spacing:1px;padding:6px 0 2px;margin-top:4px;border-top:1px solid #0d1a28}
-.emotions .hd:first-child{border-top:none;margin-top:0}
-.er{display:flex;align-items:center;gap:4px;height:18px}
-.er .nm{font-size:9px;width:62px;color:#3a5a6a;text-transform:uppercase;flex-shrink:0;overflow:hidden}
-.er .bg{flex:1;height:4px;background:#0a1420;border-radius:2px;overflow:hidden}
-.er .fl{height:100%;width:0;border-radius:2px;transition:width .15s}
-.er .vl{font-size:8px;width:22px;text-align:right;color:#2a4a5a}
-
-.history{padding:10px 12px;border-top:1px solid #0d1a28}
-.history .t{font-size:10px;color:#2a5a70;letter-spacing:1px;margin-bottom:4px}
-#hCanvas{width:100%;height:60px;background:#080e18;border:1px solid #121a2a;display:block}
-.leg{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.leg i{font-style:normal;font-size:8px;display:flex;align-items:center;gap:2px}
-.leg i b{width:6px;height:6px;border-radius:50%;display:inline-block}
-</style>
-</head>
-<body>
-
-<div class="top">
-  <h1>PSYCHO AI LAB</h1>
-  <span class="tag">37 EMOTIONS</span>
-</div>
-
-<div id="status"></div>
-<button id="startBtn">▶ START</button>
-
-<div id="camBox" class="hide">
-  <video id="vid" playsinline muted></video>
-  <canvas id="ov"></canvas>
-</div>
-
-<div class="dominant hide" id="domBox">
-  <div class="emo" id="dEmo">—</div>
-  <div class="pct" id="dPct">0%</div>
-  <div class="ko" id="dKo"></div>
-  <div class="bar"><div class="fill" id="dFill"></div></div>
-</div>
-
-<div class="emotions hide" id="emoGrid"></div>
-
-<div class="history hide" id="histBox">
-  <div class="t">HISTORY</div>
-  <canvas id="hCanvas"></canvas>
-  <div class="leg" id="legBox"></div>
-</div>
-
-<script>
-// ── 로그 ──
-var statusEl = document.getElementById('status');
-function log(msg, type) {
-  var span = document.createElement('div');
-  span.className = type || '';
-  span.textContent = '> ' + msg;
-  statusEl.appendChild(span);
-  statusEl.scrollTop = 99999;
-}
-
+// ═══════════════════════════════════════
+// MediaPipe 로딩
+// ═══════════════════════════════════════
 log('시스템 시작');
+log('MediaPipe 모듈 로딩...');
 
-// ── 감정 정의 ──
-var BASE = ['happy','neutral','sad','angry','surprise','fear','disgust'];
-var DR = {
-  excited:[['happy',.5],['surprise',.5]],joy:[['happy',.8],['surprise',.2]],
-  content:[['happy',.6],['neutral',.4]],proud:[['happy',.7],['angry',.15],['neutral',.15]],
-  hopeful:[['happy',.5],['surprise',.2],['neutral',.3]],relieved:[['happy',.4],['neutral',.4],['sad',.2]],
-  amused:[['happy',.6],['surprise',.3],['disgust',.1]],euphoric:[['happy',.55],['surprise',.4],['fear',.05]],
-  awe:[['surprise',.6],['fear',.4]],shocked:[['surprise',.6],['fear',.3],['angry',.1]],
-  confused:[['surprise',.5],['neutral',.3],['fear',.2]],curious:[['surprise',.5],['neutral',.4],['happy',.1]],
-  impressed:[['surprise',.5],['happy',.4],['neutral',.1]],
-  contempt:[['angry',.5],['disgust',.5]],irritated:[['angry',.6],['neutral',.3],['disgust',.1]],
-  frustrated:[['angry',.5],['sad',.3],['disgust',.2]],hostile:[['angry',.6],['disgust',.3],['fear',.1]],
-  jealous:[['angry',.4],['sad',.3],['fear',.3]],resentful:[['angry',.4],['sad',.4],['disgust',.2]],
-  melancholy:[['sad',.7],['neutral',.3]],lonely:[['sad',.6],['fear',.2],['neutral',.2]],
-  nostalgic:[['sad',.4],['happy',.3],['neutral',.3]],grief:[['sad',.7],['fear',.15],['angry',.15]],
-  disappointed:[['sad',.5],['angry',.2],['neutral',.3]],guilty:[['sad',.5],['fear',.3],['disgust',.2]],
-  anxious:[['fear',.5],['sad',.3],['neutral',.2]],nervous:[['fear',.5],['surprise',.3],['neutral',.2]],
-  panicked:[['fear',.6],['surprise',.3],['angry',.1]],insecure:[['fear',.4],['sad',.4],['neutral',.2]],
-  bored:[['neutral',.7],['sad',.3]],stoic:[['neutral',.6],['angry',.2],['sad',.2]]
-};
-var ALL = BASE.concat(Object.keys(DR));
-var KO={happy:'행복',neutral:'무표정',sad:'슬픔',angry:'분노',surprise:'놀람',fear:'공포',disgust:'혐오',excited:'흥분',joy:'기쁨',content:'만족',proud:'자부심',hopeful:'희망',relieved:'안도',amused:'재미',euphoric:'황홀',awe:'경외',shocked:'충격',confused:'혼란',curious:'호기심',impressed:'감탄',contempt:'경멸',irritated:'짜증',frustrated:'좌절',hostile:'적대',jealous:'질투',resentful:'원한',melancholy:'우울',lonely:'외로움',nostalgic:'향수',grief:'비탄',disappointed:'실망',guilty:'죄책감',anxious:'불안',nervous:'긴장',panicked:'패닉',insecure:'불안정',bored:'지루',stoic:'무덤덤'};
-var COL={happy:'#50e664',neutral:'#8a8a78',sad:'#3c78e6',angry:'#ff3232',surprise:'#ffd800',fear:'#ff8240',disgust:'#c83cbe',excited:'#00c8ff',joy:'#32ff82',content:'#78dc8c',proud:'#3cc8b4',hopeful:'#64ebaa',relieved:'#8cd2a0',amused:'#50f0c8',euphoric:'#1effdc',awe:'#00ffc8',shocked:'#00b4ff',confused:'#50c8e6',curious:'#64e6f0',impressed:'#32dcdc',contempt:'#dc3c3c',irritated:'#f05028',frustrated:'#c83c50',hostile:'#fa1e1e',jealous:'#be3250',resentful:'#b42850',melancholy:'#5064c8',lonely:'#3c82d2',nostalgic:'#648cb4',grief:'#3250dc',disappointed:'#466ebe',guilty:'#5a78aa',anxious:'#ffa064',nervous:'#e68c78',panicked:'#ff6450',insecure:'#d282c8',bored:'#646450',stoic:'#8c8c8c'};
-var CATS=[['BASE',BASE],['POSITIVE',['excited','joy','content','proud','hopeful','relieved','amused','euphoric']],['SURPRISE',['awe','shocked','confused','curious','impressed']],['ANGER',['contempt','irritated','frustrated','hostile','jealous','resentful']],['SAD',['melancholy','lonely','nostalgic','grief','disappointed','guilty']],['FEAR',['anxious','nervous','panicked','insecure']],['OTHER',['bored','stoic']]];
+let landmarker=null;
 
-// ── 상태 ──
-var sm={};ALL.forEach(function(e){sm[e]=0;});
-var ALPHA=0.25, HL=80;
-var HK=['happy','sad','angry','surprise','fear','neutral','excited','anxious','contempt','nostalgic'];
-var hist={};HK.forEach(function(k){hist[k]=[];for(var i=0;i<HL;i++)hist[k].push(0);});
-var faceOk=false;
+try{
+  const vision=await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/vision_bundle.mjs");
+  log('모듈 로드 완료','o');
+  const fr=await vision.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm");
+  log('WASM 준비 완료','o');
+  log('얼굴 모델 다운로드 중...');
 
-// ── 랜드마크 인덱스 ──
-var IX={mT:13,mB:14,mL:61,mR:291,leT:159,leB:145,leL:33,leR:133,reT:386,reB:374,reL:362,reR:263,lbI:107,lbM:105,rbI:336,rbM:334,nose:1,chin:152,fh:10};
-
-function dist(a,b){return Math.sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]));}
-
-function analyze(lms){
-  // lms = [{x,y,z}, ...] 정규화 좌표 (0~1)
-  function g(i){return[lms[i].x, lms[i].y];}
-  var mv=dist(g(IX.mT),g(IX.mB)), mh=dist(g(IX.mL),g(IX.mR));
-  var mar=mv/(mh+.0001);
-  var cL=g(IX.mL),cR=g(IX.mR),cT=g(IX.mT);
-  var sv=((cT[1]-cL[1])+(cT[1]-cR[1]))/2;
-  var fh=dist(g(IX.fh),g(IX.chin));
-  var smile=sv/(fh+.0001);
-  var lev=dist(g(IX.leT),g(IX.leB)),leh=dist(g(IX.leL),g(IX.leR));
-  var rev=dist(g(IX.reT),g(IX.reB)),reh=dist(g(IX.reL),g(IX.reR));
-  var ear=((lev/(leh+.0001))+(rev/(reh+.0001)))/2;
-  var lbh=g(IX.leT)[1]-g(IX.lbM)[1], rbh=g(IX.reT)[1]-g(IX.rbM)[1];
-  var bH=(lbh+rbh)/2/(fh+.0001);
-  var bF=dist(g(IX.lbI),g(IX.rbI))/(fh+.0001);
-  var nm=dist(g(IX.nose),g(IX.mT))/(fh+.0001);
-
-  function cl(v){return Math.min(Math.max(v,0),100);}
-  var s={};
-  s.happy=cl((Math.max(0,smile*15)+Math.max(0,(0.18-ear)*8))*20);
-  s.surprise=cl((Math.max(0,(ear-0.22)*10)+Math.max(0,(bH-0.08)*10)+Math.max(0,(mar-0.15)*5))*15);
-  s.sad=cl((Math.max(0,-smile*12)+Math.max(0,(bH-0.07)*5))*18);
-  s.angry=cl((Math.max(0,(0.25-bF)*8)+Math.max(0,(0.17-ear)*6)+Math.max(0,-smile*5))*15);
-  s.fear=cl((Math.max(0,(ear-0.21)*8)+Math.max(0,(bH-0.075)*8)+Math.max(0,(mar-0.08)*3))*12);
-  s.disgust=cl((Math.max(0,(0.12-nm)*10)+Math.max(0,-smile*5))*18);
-  var os=s.happy+s.surprise+s.sad+s.angry+s.fear+s.disgust;
-  s.neutral=cl(100-os*0.8);
-  if(s.neutral<5)s.neutral=5;
-  var t=0;for(var k in s)t+=s[k]; if(!t)t=1;
-  for(var k in s)s[k]=(s[k]/t)*100;
-  return s;
-}
-
-function compDerived(b){
-  var r={};for(var n in DR){var v=0;DR[n].forEach(function(x){v+=(b[x[0]]||0)*x[1];});r[n]=Math.min(v,100);}
-  return r;
-}
-
-function doSmooth(raw,found){
-  faceOk=found;
-  if(!found){ALL.forEach(function(e){sm[e]*=(1-ALPHA);});return;}
-  var dv=compDerived(raw),all={};
-  for(var k in raw)all[k]=raw[k];for(var k in dv)all[k]=dv[k];
-  ALL.forEach(function(e){sm[e]+=((all[e]||0)-sm[e])*ALPHA;});
-  HK.forEach(function(k){hist[k].push(sm[k]||0);if(hist[k].length>HL)hist[k].shift();});
-}
-
-function getDom(){var b='neutral',bv=0;ALL.forEach(function(e){if(sm[e]>bv){bv=sm[e];b=e;}});return b;}
-
-// ── UI ──
-function buildGrid(){
-  var g=document.getElementById('emoGrid');g.innerHTML='';
-  CATS.forEach(function(c){
-    var h=document.createElement('div');h.className='hd';h.textContent=c[0];g.appendChild(h);
-    c[1].forEach(function(e){
-      var r=document.createElement('div');r.className='er';r.id='r_'+e;
-      r.innerHTML='<span class="nm" style="color:'+COL[e]+'44">'+e.substr(0,9)+'</span><div class="bg"><div class="fl" id="f_'+e+'" style="background:'+COL[e]+'"></div></div><span class="vl" id="v_'+e+'">0</span>';
-      g.appendChild(r);
-    });
-  });
-}
-function buildLeg(){
-  var l=document.getElementById('legBox');
-  HK.forEach(function(k){
-    var s=document.createElement('i');s.style.color=COL[k];
-    s.innerHTML='<b style="background:'+COL[k]+'"></b>'+k.substr(0,5);
-    l.appendChild(s);
-  });
-}
-
-function updateUI(){
-  var dm=getDom(),pct=sm[dm]||0,c=COL[dm]||'#00d4ff';
-  document.getElementById('dEmo').textContent=dm.toUpperCase();
-  document.getElementById('dEmo').style.color=c;
-  document.getElementById('dPct').textContent=Math.round(pct)+'%';
-  document.getElementById('dPct').style.color=c;
-  document.getElementById('dKo').textContent=KO[dm]||'';
-  var fl=document.getElementById('dFill');fl.style.width=pct+'%';fl.style.background=c;
-
-  ALL.forEach(function(e){
-    var f=document.getElementById('f_'+e),v=document.getElementById('v_'+e),rw=document.getElementById('r_'+e);
-    if(!f)return;
-    f.style.width=Math.round(sm[e])+'%';
-    v.textContent=Math.round(sm[e]);
-    var nm=rw.querySelector('.nm');
-    if(e===dm){nm.style.color=COL[e];nm.style.fontWeight='bold';}
-    else{nm.style.color=COL[e]+'44';nm.style.fontWeight='normal';}
-  });
-
-  // 히스토리
-  var cv=document.getElementById('hCanvas');
-  var rect=cv.getBoundingClientRect();
-  var dpr=window.devicePixelRatio||1;
-  cv.width=rect.width*dpr;cv.height=rect.height*dpr;
-  var ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
-  var w=rect.width,h=rect.height;
-  ctx.clearRect(0,0,w,h);
-  HK.forEach(function(k){
-    ctx.beginPath();ctx.strokeStyle=COL[k];ctx.lineWidth=1;
-    hist[k].forEach(function(v,i){
-      var x=(i/HL)*w,y=h-(v/100)*h;
-      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-    });
-    ctx.stroke();
-  });
-}
-
-function drawOverlay(lms, vw, vh){
-  var c=document.getElementById('ov');
-  c.width=vw;c.height=vh;
-  var ctx=c.getContext('2d');
-  ctx.clearRect(0,0,vw,vh);
-  if(!faceOk||!lms||!lms.length)return;
-
-  var dm=getDom(),co=COL[dm]||'#00d4ff';
-  var minX=1,minY=1,maxX=0,maxY=0;
-  for(var i=0;i<lms.length;i++){
-    var l=lms[i];
-    if(l.x<minX)minX=l.x;if(l.x>maxX)maxX=l.x;
-    if(l.y<minY)minY=l.y;if(l.y>maxY)maxY=l.y;
+  try{
+    landmarker=await vision.FaceLandmarker.createFromOptions(fr,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"GPU"},outputFaceBlendshapes:false,runningMode:"VIDEO",numFaces:4});
+    log('모델 준비 완료! (GPU)','o');
+  }catch{
+    landmarker=await vision.FaceLandmarker.createFromOptions(fr,{baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",delegate:"CPU"},outputFaceBlendshapes:false,runningMode:"VIDEO",numFaces:4});
+    log('모델 준비 완료! (CPU)','o');
   }
-  var pd=.03;
-  // 거울 반전 보정
-  var bx=(1-maxX-pd)*vw, by=(minY-pd)*vh;
-  var bw=(maxX-minX+pd*2)*vw, bh=(maxY-minY+pd*2)*vh;
-
-  ctx.strokeStyle=co;ctx.lineWidth=2;ctx.shadowColor=co;ctx.shadowBlur=6;
-  var sz=14;
-  [[bx,by,1,1],[bx+bw,by,-1,1],[bx,by+bh,1,-1],[bx+bw,by+bh,-1,-1]].forEach(function(a){
-    ctx.beginPath();ctx.moveTo(a[0]+a[2]*sz,a[1]);ctx.lineTo(a[0],a[1]);ctx.lineTo(a[0],a[1]+a[3]*sz);ctx.stroke();
-  });
-  ctx.shadowBlur=0;
-
-  var lb=dm.toUpperCase()+' '+(KO[dm]||'')+' '+Math.round(sm[dm])+'%';
-  ctx.font='bold 12px monospace';ctx.fillStyle='rgba(8,12,20,.85)';
-  var tw=ctx.measureText(lb).width;
-  ctx.fillRect(bx,by-18,tw+8,16);
-  ctx.fillStyle=co;ctx.fillText(lb,bx+4,by-6);
+  log('START 버튼을 눌러주세요','o');
+  document.getElementById('startBtn').style.display='block';
+}catch(err){
+  log('로드 실패: '+err.message,'e');
+  log('인터넷 연결 & HTTPS 필요','e');
 }
 
-// ── MediaPipe 로드 (Tasks Vision API — 최신) ──
-var FaceLandmarker, FilesetResolver;
-var landmarker = null;
+// ═══════════════════════════════════════
+// 시작
+// ═══════════════════════════════════════
+document.getElementById('startBtn').addEventListener('click',async()=>{
+  document.getElementById('startBtn').style.display='none';
+  const vid=document.getElementById('vid');
 
-log('MediaPipe Tasks Vision 로딩 중...');
-
-var script = document.createElement('script');
-script.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/vision_bundle.mjs';
-script.type = 'module';
-
-// Module 방식이라 다른 접근 필요
-// 대신 importmap + dynamic import 사용
-
-var initScript = document.createElement('script');
-initScript.type = 'module';
-initScript.textContent = `
-import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/vision_bundle.mjs";
-window._FaceLandmarker = FaceLandmarker;
-window._FilesetResolver = FilesetResolver;
-window._mpLoaded = true;
-document.getElementById('status').innerHTML += '<div class="ok">> MediaPipe 로드 성공!</div>';
-document.getElementById('startBtn').style.display = 'block';
-`;
-document.head.appendChild(initScript);
-
-// 로드 실패 체크
-setTimeout(function(){
-  if(!window._mpLoaded){
-    log('MediaPipe 로드 시간 초과... 대체 방법 시도 중...', 'warn');
-    // fallback: 구버전 script 방식
-    var s1 = document.createElement('script');
-    s1.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js';
-    s1.onload = function(){
-      log('FaceMesh (legacy) 로드 OK', 'ok');
-      window._useLegacy = true;
-      var s2 = document.createElement('script');
-      s2.src = 'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js';
-      s2.onload = function(){
-        log('Camera Utils 로드 OK', 'ok');
-        document.getElementById('startBtn').style.display = 'block';
-      };
-      s2.onerror = function(){log('Camera Utils 로드 실패', 'err');};
-      document.head.appendChild(s2);
-    };
-    s1.onerror = function(){log('FaceMesh 로드 실패 - 인터넷 확인', 'err');};
-    document.head.appendChild(s1);
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:480},height:{ideal:360}},audio:false});
+    vid.srcObject=stream; await vid.play();
+    log('카메라 시작!','o');
+    log('캘리브레이션 중... 자연스럽게 정면을 봐주세요 (2초)','w');
+  }catch(err){
+    log('카메라 오류: '+err.message,'e');
+    if(location.protocol!=='https:'&&location.hostname!=='localhost')log('HTTPS 필요!','e');
+    return;
   }
-}, 8000);
 
-// ── 시작 버튼 ──
-document.getElementById('startBtn').addEventListener('click', function(){
-  this.style.display='none';
-  statusEl.innerHTML='<div class="ok">> 카메라 시작 중...</div>';
+  // UI 표시
+  ['camBox','mainBox','scorePanel','barBox','histBox'].forEach(id=>document.getElementById(id).style.display='');
+  document.getElementById('ftabs').style.display='flex';
+  buildScorePanel(); buildLegend();
 
-  document.getElementById('camBox').classList.remove('hide');
-  document.getElementById('domBox').classList.remove('hide');
-  document.getElementById('emoGrid').classList.remove('hide');
-  document.getElementById('histBox').classList.remove('hide');
-  buildGrid(); buildLeg();
+  if(!landmarker){log('모델 미준비','e');return;}
 
-  var vid = document.getElementById('vid');
+  let lastTs=-1,fpsC=0,fpsL=performance.now(),fpsV=0;
+  const CAL_FRAMES=40; // 약 2초간 캘리브레이션
 
-  // 카메라 직접 열기
-  navigator.mediaDevices.getUserMedia({
-    video: { facingMode:'user', width:{ideal:480}, height:{ideal:360} },
-    audio: false
-  }).then(function(stream){
-    vid.srcObject = stream;
-    vid.onloadeddata = function(){
-      vid.play();
-      log('카메라 활성화!', 'ok');
-      statusEl.style.display='none';
+  function tick(){
+    requestAnimationFrame(tick);
+    if(vid.readyState<2)return;
 
-      if(window._mpLoaded && window._FaceLandmarker){
-        startModern(vid);
-      } else if(window._useLegacy){
-        startLegacy(vid);
-      } else {
-        // 둘 다 아직이면 잠시 대기
-        log('MediaPipe 대기...', 'warn');
-        var check = setInterval(function(){
-          if(window._mpLoaded && window._FaceLandmarker){
-            clearInterval(check); startModern(vid);
-          } else if(window._useLegacy && window.FaceMesh){
-            clearInterval(check); startLegacy(vid);
+    const now=performance.now();
+    const ts=Math.round(now);
+    if(ts<=lastTs)return;
+    lastTs=ts;
+
+    fpsC++;
+    if(now-fpsL>=1000){fpsV=fpsC;fpsC=0;fpsL=now;document.getElementById('fpsEl').textContent=fpsV+' FPS';}
+
+    try{
+      const result=landmarker.detectForVideo(vid,ts);
+      const allLms=result?.faceLandmarks||[];
+
+      // 캘리브레이션 단계
+      if(calibrating && allLms.length>0){
+        const ft=extractFeatures(allLms[0]);
+        if(ft){
+          calSum.ear+=ft.ear;calSum.browH+=ft.browH;calSum.browF+=ft.browF;
+          calSum.mar+=ft.mar;calSum.smile+=ft.smile;calSum.noseM+=ft.noseM;
+          calibFrames++;
+
+          if(calibFrames>=CAL_FRAMES){
+            calBase={
+              ear:calSum.ear/calibFrames,
+              browH:calSum.browH/calibFrames,
+              browF:calSum.browF/calibFrames,
+              mar:calSum.mar/calibFrames,
+              smile:calSum.smile/calibFrames,
+              noseM:calSum.noseM/calibFrames
+            };
+            calibrating=false;
+            logEl.style.display='none';
+            log('캘리브레이션 완료!','o');
           }
-        }, 500);
-      }
-    };
-  }).catch(function(err){
-    log('카메라 오류: ' + err.message, 'err');
-    log('HTTPS가 필요합니다! GitHub Pages로 호스팅하세요.', 'warn');
-  });
-});
-
-// ── Modern API (tasks-vision) ──
-function startModern(vid){
-  var FL = window._FaceLandmarker;
-  var FR = window._FilesetResolver;
-
-  FR.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.18/wasm").then(function(filesetResolver){
-    return FL.createFromOptions(filesetResolver, {
-      baseOptions: {
-        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
-        delegate: "GPU"
-      },
-      outputFaceBlendshapes: false,
-      runningMode: "VIDEO",
-      numFaces: 1
-    });
-  }).then(function(fl){
-    landmarker = fl;
-    log('FaceLandmarker 준비 완료!', 'ok');
-
-    var lastTime = -1;
-    function loop(){
-      if(vid.readyState >= 2){
-        var now = performance.now();
-        if(now !== lastTime){
-          lastTime = now;
-          try {
-            var result = landmarker.detectForVideo(vid, now);
-            if(result && result.faceLandmarks && result.faceLandmarks.length > 0){
-              var lms = result.faceLandmarks[0];
-              var raw = analyze(lms);
-              doSmooth(raw, true);
-              drawOverlay(lms, vid.videoWidth, vid.videoHeight);
-            } else {
-              doSmooth({}, false);
-              drawOverlay(null, vid.videoWidth, vid.videoHeight);
-            }
-          } catch(e){
-            doSmooth({}, false);
-          }
-          updateUI();
         }
+        return; // 캘리브레이션 중에는 감정 분석 안 함
       }
-      requestAnimationFrame(loop);
-    }
-    loop();
-  }).catch(function(err){
-    log('FaceLandmarker 초기화 실패: '+err, 'err');
-    // fallback to legacy
-    if(window.FaceMesh){
-      startLegacy(vid);
-    }
-  });
-}
 
-// ── Legacy API (fallback) ──
-function startLegacy(vid){
-  log('Legacy FaceMesh 모드', 'warn');
-  var mesh = new FaceMesh({locateFile:function(f){return 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/'+f;}});
-  mesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.5,minTrackingConfidence:0.5});
-  mesh.onResults(function(r){
-    if(r.multiFaceLandmarks && r.multiFaceLandmarks.length>0){
-      var lms=r.multiFaceLandmarks[0];
-      var raw=analyze(lms);
-      doSmooth(raw,true);
-      drawOverlay(lms,vid.videoWidth,vid.videoHeight);
-    } else {
-      doSmooth({},false);
-      drawOverlay(null,vid.videoWidth,vid.videoHeight);
-    }
-    updateUI();
-  });
+      if(calibrating)return; // 얼굴 없으면 대기
 
-  function sendFrame(){
-    if(vid.readyState>=2){
-      mesh.send({image:vid}).then(function(){
-        requestAnimationFrame(sendFrame);
+      while(faces.length<allLms.length)faces.push(new Face(faces.length));
+
+      faces.forEach((f,i)=>{
+        if(i<allLms.length){
+          const ft=extractFeatures(allLms[i]);
+          const raw=ft?featuresToScores(ft):null;
+          if(raw)f.update(raw);else f.fade();
+        }else f.fade();
       });
-    } else {
-      requestAnimationFrame(sendFrame);
-    }
+
+      if(aFace>=allLms.length&&allLms.length>0)aFace=0;
+      drawOv(allLms,vid.videoWidth,vid.videoHeight);
+    }catch(e){}
+
+    updateUI();
   }
-  sendFrame();
-}
+
+  setTimeout(()=>requestAnimationFrame(tick),300);
+});
 </script>
 </body>
 </html>
